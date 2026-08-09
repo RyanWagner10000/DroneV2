@@ -1,0 +1,206 @@
+# Bare-Metal Embedded-C Drone & Flight Controller *Version 2*
+
+## Table of Contents
+
+- [Description](#description)
+- [Requirements](#requirements)
+- [Flashing](#flashing-the-board)
+- [Used Components](#external-components)
+- [Peripheral Settings](#current-peripheral-settings)
+- [Filter Methods](#madgwick-filter)
+
+<br>
+
+## Description
+
+This repo is mainly for practicing bare metal embedded C programming on the STM32F411CEU6 board, AKA the Blackpill V3; as well as furthering the development of a DIY drone and flight contorller system.
+
+I'm just trying to learn as much as I can. Along that note, this repo does not use any CMSIS files or HAL libraries from STM; I figured doing so would help me learn more about how everything works even it's not the most performant.
+
+<br>
+
+## Requirements
+* GNU ARM Embedded Toolchain
+* OpenOCD
+* GCC for Linux
+* Python 3.X (for debugging/USART only)
+
+<br>
+
+## Flashing the Board
+1. Todo
+
+<br>
+
+## External Components
+
+### Adafruit LSM9DS1 9-DOF IMU (P3387)
+
+##### Links
+
+| [Overview](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/) | [Pinout](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts) | [Downloads](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/downloads)
+
+##### Description
+
+This board is an Inertial Measurement Unit (IMU) which incorporates an accelerometer, gyroscope, magnetometer, and temperature sensor all on the same board. Typically, these combination of sensors are used in conjection to calculate the orientation of the board in 3D space, but it can also be used for general tilt sensing, pedometers, tap sensing, etc. This project will use this board to estimate the 3D orientation of the quadcopter in real-time.
+
+##### Configuration
+
+###### Accelerometer
+
+The accelerometer is configured to have an Ouput Data Rate (ODR) of 3.3kHz with low and high pass filters of ODR/9. It's only on $\pm 4g$ sensitivity as I don't expect my applicaiton to be going very fast. Lastly, I set the Block Data Update bit for control register 3 which blocks continuous updates until the MSB and LSB have been read.
+
+Note: are these the best settings? No, but they work fine for right now.
+
+###### Gyroscope
+
+The gyroscope is configured to also have an ODR of 3.3kHz with it's sensitvity at 500 dps (degrees per second). Again, this drone probably isn't moving very fast so high sensitivity would only lead to more noise in the system. This sensor is also configured to have a high and low pass filter.
+
+Note: are these the best settings? No, but they work fine for right now.
+
+###### Magnetometer
+
+This sensor was not used at the time of writing, because frankly I couldn't get the master I2C to work on LSM6DSL to talk to the LIS3MDL (magnetometer) sensor via SPI. Hopeuflly this gets figured out eventually!
+
+---
+
+### Adafruit BME680 Breakout (P3660)
+
+##### Links
+
+| [Overview](https://learn.adafruit.com/adafruit-bme680-humidity-temperature-barometic-pressure-voc-gas/overview) | [Pinout](https://learn.adafruit.com/adafruit-bme680-humidity-temperature-barometic-pressure-voc-gas/pinouts) | [Downloads](https://learn.adafruit.com/adafruit-bme680-humidity-temperature-barometic-pressure-voc-gas/downloads)
+
+##### Description
+
+This board is an incorporates a pressure, humidity, temperature, and gas sensor all into one package. The gas sensor functionality will not be used in this setup, but all the other sensors will. This sensor system will estimate the altitude of the drone taking into account the changes in air temperature and humidity which alter the air pressure reading. This is the first time I'm ever using a sensor and sensor data like this, so the accuracy may not be the best, and it will almost certainly be less accurate than GPS.
+
+##### Configuration
+
+###### Pressure
+
+TBD
+
+###### Humidity
+
+TBD
+
+###### Temperature
+
+TBD
+
+---
+
+### Electronic Speed Controller (ESC) - [Link](https://www.hobbywingdirect.com/products/skywalker-esc-30a?srsltid=AfmBOoo4jPsj8Cw2gNXTsvY-Jg083MuQC2i5FRH6rTTn0dHf2sIzp6eH)
+
+##### Description
+
+This ESC is a simple, entry-level motor controller, but has been over spec-ed to account for any voltage spikes that could occur. These ESC's also come with two leads for and extra BEC line and a programming line. The BEC line supports up to 5V 5A and will hopefully be used to power some LED's on the arms of the quadcopter. The signal line is being controlled via a PWM pin on the MCU, with the duty cycle varying between ~1ms to ~2ms with an update rate of ~400 Hz. The duty cycle vaies between these values because the ESC is built to comply with Futaba's Standard of 1100 and 1940 microseconds. Futaba's Standard is pretty common for hobby level flying creations like drones, planes, and single-rotors, and is far simpler (but slower) than another form of communication like D-Shot. The pins used to provide PWM to the four ESC's were PC6, PC7, PC8, PC9.
+
+---
+
+
+### Motor - SunnySky X2212 980KV - [Link](https://sunnyskyusa.com/products/sunnysky-x2212-brushless-motors-new?srsltid=AfmBOooHTCWo2V5ESi72pRGVuCphP4LgCLehmAm6OVzSersa_RpPchxA)
+
+##### Description
+
+This motor is a small, entry-level, torque focused motor. A 980 KV is more tuned to be a "heavy lifting" motor because it has a lower KV; a lower KV translates to a lower max RPM with the following equation of operating voltage * KV: 14.8 (V) * 980 (RPM/V) = 14,504 RPM. This drone build was not designed to be a racing drone, but something more stable just for show and experimentation. Two Cloackwise (CW) and Counterclockwise (CCW) motors were chosen for this build with a blades out configuration. It's possible to just buy all the same CW or CCW motor and swap the set of power leads to two of the motors (to spin in reverse), but I didn't want do that and just wanted to wire things normally. The motos also make a continuous beeping noise when they aren't convifugred with a stable PWM source, but when one is provided they make a short tune to say they are configured correctly. More physical and electrical motor specifications can be found at the link above.
+
+---
+
+
+### RF Transceiver - NRF24L01+PA+LNA - [Link](https://www.amazon.com/gp/product/B07ZGQ2X7Q/ref=ox_sc_act_title_2?smid=A1VTL661FOEJB1&psc=1)
+
+##### Description
+
+This is a small radio module that operates in the 2.4 GHz range. This project will be using two of these; one for the ground station and one for the drone. Please make sure that you check out your regions radio frequency spectrum laws so that you aren't transmitting at a frequency you shouldn't be. For the US, the 2.4-2.4835 GHz range is a license-free Industrial, Scientific, and Medical (ISM) radio band.
+
+This board is equipt with a Power Amplifier (PA) and Low Noise Amplifier (LNA) which are used to increase signal strength and reduce accumulated interference, reqpectively; these two features mainly extend the effective range of the board which is listed at about ~1 km. It's also rated to support 250kbps-2Mbps data rates depending on configuration. This model also has 125 channels which supports mesh networks of these modules.
+
+---
+
+
+### Battery Pack - [Link](https://genstattu.com/tattu-2300mah-4s-75c-lipo-battery-pack-with-xt60-plug/?srsltid=AfmBOorbmZlas45tGu5uICt_1vnR04mdFqh8_4CqffeuCL02hHuqwY0q)
+
+##### Description
+
+This is a 4S or 4 cell battery with a voltage of 14.8V and 2300mAh capacity. It's not the biggest battery that I could put on this drone, but it's good enough for testing purposes.
+
+---
+
+
+### Power Distribution Board - [Link](https://speedyfpv.com/products/drone-power-distribution-board-xt60-3-4s-9-18v-5v-12v-output-pdb?variant=8596736049203)
+
+##### Description
+
+This board does as the name suggests: it distributes the power to all the connected components. It takes in the power of the battery, and safely sends it out to the flight controller, ESC's/motors, and anything else. The board has the capability to support up to six motors, but this build will only be using four; note that the maximum amperage rated for six motor use is less than that of four motor use.
+
+---
+
+
+## Current Peripheral Settings
+
+### General Notes
+
+* Uses base clock of 96 MHz for CPU and all buses
+* The NVIC table is written in the general ARM Cortex-M4 chip, and is not tailored for this specific chip
+  * Therefore, extra care was taken to only use the interrupts this chip has
+
+### Timers
+
+#### TIM 1
+
+This advanced timer is used as the update frequency for the IMU, Madgwick filter, updating the PWM's for all the motors. It ia set at 250Hz which seemed like a fine rate to be accurately checking the IMU, calculating quaternions, and updating motor speeds. It uses pins PA8, PA9, PA10, and PA11.
+
+It also has an interrupt triggered on its overflow such that it sets a global flag indicating to the Main loop that everything is ready to read and updated. This interrupt also triggers another 1 second flag that was only for debugging purposes like received packets per second and other update rates.
+
+#### TIM 10
+
+This timer is used as a basic 1 ms timer for the purpose of various initialization timing, buzzer pitch timing, 
+
+#### TIM2 CH1
+
+This timer is used as the PWM signal required to change the pitch of the buzzer sound.
+
+### LED's
+
+#### Green, Blue (on board), and Red
+
+Three LED's are used on this build for status signalling. The Blue LED is already on the Blackpill and uses PC13. The Green and Red LED's use pins PC14 and PC15 respectively. There is one 220Ω resistor before each LED.
+
+### Active Buzzer
+
+#### Random 3.3V Active Buzzer
+
+There is one (presumably) 3.3V Active Buzzer used for status signalling along side the LED's. I don't know the manufacturer of this device because there are no markings on it, and I just found it in one of my old beginner kits but I figured I'd incorporate it. This is connected to pin PA0, but will be configured in PWM mode using Timer 2
+
+### USART
+
+#### USART1
+
+This peripheral uses GPIO pins PA2 & PA3 in alternate function mode to enable basic USART communication to my development machine. I have configured the protocol to operate at 115200 baud, but may change in the future depending on frequency of messaging; this peripheral will be toggled off in the final deployment of the code as a computer will not be connected to it at all times. Therefore, USART is mainly used for debugging.
+
+### SPI
+
+#### SPI1 (IMU Module)
+
+This peripheral use GPIO pins PA5, PA7, PB0, PB1, and PB2 (twice!) for SPI1. This bus is used to communicate to both IMU modules. If other devices need to communicate via SPI1 (and at the same frequency), then they will share the SDO (MISO), SDI (MOSI), and SCL (SCK) pins as the IMU module, but will need another GPIO pin for the CS of the new device. SPI1 is setup to operate at 4MHz, reduced from the 96MHz bus frequency; this was done to limit extra noise on the sensor.
+
+This IMU module is a bit different than most because it has most of the pins on the MEMS chips broken-out on the PCB; usually one would have to use an I2C bus on the Accelerometer/Gyroscope MEMS chip to talk to the Magnetometer. Due to this design, there are two SDI and two SDO pins, one set for the Accelerometer & Gyro, and another set for the magnetometer. Therefore, one GPIO pin on the MCU (PB2) will be getting BOTH serial data lines; so I can't get data from the Accelerometer/Gyro and the Magnetometer at the same time. One couldn't get the data from both MEMS at the same time from the other configuration, but I like this breakout configuration better, because it just makes communication easier at the cost of more GPIO pins.
+
+#### SPI3 (Radio Module)
+
+This peripheral uses GPIO pins PA12, PA15, PB3, PB4, and PB5. This bus is used to communicate to the RF module (NRF24L01+); pins PA12 and PA15 are setup to be the CE and CSN pins which are used to turn the radio ON/OFF for use as well as for following the SPI communication protocol. SPI3 is setup to operate at 4MHz, reduced from the 96MHz bus frequency.
+
+## Madgwick Filter
+
+This was NOT an original idea, and I encourage anyone to read into it further as I probably will not be able to fully articulate the ability of this filter and orientation estimator. High-level, the Madgwick filter is a process that uses quaternions to represent the orienation of something in 3D space. I also can't give a great explanation of quaternions here, but essentailly they are 4D vectors with one real part and three imaginary parts; this allows quaternions to efficiently be converted to Euler angles (or any other schema) but without the problem of gimbal lock.
+
+Anyway, the Madgwcik filter uses quaternions and fast gradient-descent to find the orientation of the object through all the sensor noise and drift associated with gyroscopes. There are two versions of the Madgwick filter, one that just uses Accelerometer and Gyroscope sensors, and one that is MARG (Magnetic, Angular Rate, and Gravity). The filter boasts great resolution even at update speeds of 10Hz as well as computational efficiency for applicaitons with limited resources (like this one!).
+
+I'm not going to try explaining the math behind this great filter, so I implore you to read it yourself. There are many other implementations of this filter online/github, but I went with the following site because everything was open-source!
+
+| [Paper Link](https://x-io.co.uk/downloads/madgwick_internal_report.pdf) |  [Code Link](https://x-io.co.uk/open-source-imu-and-ahrs-algorithms/) |
+
+<br>
+
+<br>

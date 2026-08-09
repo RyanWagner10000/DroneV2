@@ -1,0 +1,16 @@
+set(CMAKE_SYSTEM_NAME Generic)
+set(CMAKE_SYSTEM_PROCESSOR arm)
+
+set(ARM_TOOLCHAIN_PREFIX arm-none-eabi-)
+
+set(CMAKE_C_COMPILER ${ARM_TOOLCHAIN_PREFIX}gcc)
+set(CMAKE_ASM_COMPILER ${ARM_TOOLCHAIN_PREFIX}gcc)
+set(CMAKE_OBJCOPY ${ARM_TOOLCHAIN_PREFIX}objcopy)
+set(CMAKE_SIZE ${ARM_TOOLCHAIN_PREFIX}size)
+
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_C_EXTENSIONS OFF)
+
+# Disable default flags
+set(CMAKE_C_FLAGS "-Wall -Wextra -Wpedantic -Werror")
+set(CMAKE_EXE_LINKER_FLAGS "-nostdlib")
