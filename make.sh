@@ -73,6 +73,8 @@ catch || {
 echo ""
 echo "firmware.elf File Dimensions"
 arm-none-eabi-size firmware.elf
+echo ""
+arm-none-eabi-objdump -h firmware.elf
 
 echo " -- DONE! -- "
 

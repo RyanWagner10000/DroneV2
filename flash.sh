@@ -2,7 +2,7 @@
 # Create a new build folder and make the project
 
 CURR_DIR=$(pwd)
-INTERFACE_CFG="$CURR_DIR/scripts/stlink.cfg"
+INTERFACE_CFG="$CURR_DIR/scripts/stlink-dap.cfg"
 TARGET_CFG="$CURR_DIR/scripts/stm32f4x.cfg"
 
 function try()
@@ -29,7 +29,7 @@ try
     cd build/
 )
 catch || {
-    echo "Build directory does not exist. RUnning build script..."
+    echo "Build directory does not exist. Running build script..."
     /bin/bash make.sh
 }
 
@@ -43,7 +43,8 @@ if [ "$OS_NAME" == "Linux" ]; then
         echo ""
         echo " -- Launching openOCD -- "
         echo ""
-        openocd -f "$INTERFACE_CFG" -f "$TARGET_CFG" -c 'program firmware.elf verify reset exit'
+        openocd -f "$INTERFACE_CFG" -f "$TARGET_CFG" \
+        -c "program firmware.elf verify reset exit"
     )
     catch || {
         echo "Launching openOCD was unsuccessful."
@@ -55,10 +56,10 @@ elif [[ "$OS_NAME" == CYGWIN* || "$OS_NAME" == MINGW* ]]; then
     try
     (
         echo ""
-        echo " -- Launching openOCD -- "
+        echo " Flashing via OpenOCD is not supported for this OS at this time. "
         echo ""
-        OPENOCD_COMMAND="openocd -f $INTERFACE_CFG -f $TARGET_CFG -c 'program firmware.elf verify reset exit'"
-        powershell.exe -Command "Start-Process powershell -ArgumentList '-NoExit', \"& { $OPENOCD_COMMAND }\""
+        # OPENOCD_COMMAND="openocd -f $INTERFACE_CFG -f $TARGET_CFG -c 'program firmware.elf verify reset exit'"
+        # powershell.exe -Command "Start-Process powershell -ArgumentList '-NoExit', \"& { $OPENOCD_COMMAND }\""
     )
     catch || {
         echo "Launching openOCD was unsuccessful."

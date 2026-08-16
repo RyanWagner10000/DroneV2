@@ -10,6 +10,7 @@
 #define MAIN_H
 
 #include <stdint.h>
-
+#include "rcc.h"
+#include "gpio.h"
 
 #endif // MAIN_H

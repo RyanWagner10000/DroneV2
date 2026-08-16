@@ -9,12 +9,11 @@ include_directories(include)
 # Source files
 file(GLOB SRC_FILES
     src/*.c
-    src/drivers/*.c
 )
 
 add_executable(firmware.elf ${SRC_FILES})
 
-target_include_directories(firmware.elf PRIVATE include include/drivers)
+target_include_directories(firmware.elf PRIVATE include include)
 
 # MCU flags - put EVERYTHING here for the target
 target_compile_options(firmware.elf PRIVATE
@@ -23,6 +22,7 @@ target_compile_options(firmware.elf PRIVATE
     -mfpu=fpv4-sp-d16
     -mfloat-abi=hard
     -std=gnu11
+    -ffreestanding
 )
 
 target_link_options(firmware.elf PRIVATE

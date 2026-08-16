@@ -4,7 +4,7 @@ ENTRY(Reset_Handler)
 /* Detailing the available memory */
 MEMORY
 {
-    FLASH(rx) :ORIGIN =0x08000000, LENGTH =1024K
+    FLASH(rx) :ORIGIN =0x08000000, LENGTH =512K
     SRAM(rwx) :ORIGIN =0x20000000, LENGTH =128K
 }
 
@@ -27,6 +27,7 @@ SECTIONS
         . = ALIGN(4);
         _etext = .;
     } > FLASH
+
     .data :
     {
         . = ALIGN(4);
@@ -34,7 +35,8 @@ SECTIONS
         *(.data)
         . = ALIGN(4);
         _edata = .;
-    } > SRAM AT> FLASH /* >(vma) AT> (lma) */
+    } > SRAM AT > FLASH
+
     .bss :
     {
         . = ALIGN(4);
@@ -43,5 +45,5 @@ SECTIONS
         *(.bss)
         . = ALIGN(4);
         _ebss = .;
-    } > SRAM
+    }> SRAM
 }
