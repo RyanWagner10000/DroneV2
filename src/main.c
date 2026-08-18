@@ -17,7 +17,8 @@
  */
 int main(void)
 {
-    // initBlueLED();
+    init_rcc();
+
     initGreenLED();
 
     volatile uint32_t counter;

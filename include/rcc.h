@@ -10,6 +10,7 @@
 #define RCC_H
 
 #include <stdint.h>
+#include "flash.h"
 
 #define SYS_CLOCK (96000000U);
 
@@ -55,5 +56,7 @@ typedef struct
     volatile uint32_t PLLI2SCFGR; // offset: 0x84
     volatile uint32_t DCKCFGR;    // offset: 0x8C
 } RCC_TypeDef;
+
+void init_rcc(void);
 
 #endif // RCC_H
