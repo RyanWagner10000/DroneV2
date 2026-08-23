@@ -18,7 +18,7 @@
 void initBlueLED(void)
 {
     // Enable clock access to GPIOD
-    RCC->AHB1ENR |= GPIOCEN;
+    RCC->AHB1ENR |= (1U << 2);
 
     // Set mode to output
     GPIOC->MODER |= (1U << 26);
@@ -37,7 +37,7 @@ void initBlueLED(void)
 void initRedLED(void)
 {
     // Enable clock access to GPIOD
-    RCC->AHB1ENR |= GPIOCEN;
+    RCC->AHB1ENR |= (1U << 2);
 
     // Set PD14 mode to output
     GPIOC->MODER |= (1U << 28);
@@ -56,7 +56,7 @@ void initRedLED(void)
 void initGreenLED(void)
 {
     // Enable clock access to GPIOD
-    RCC->AHB1ENR |= GPIOCEN;
+    RCC->AHB1ENR |= (1U << 2);
 
     // Set PD12 mode to output
     GPIOC->MODER |= (1U << 30);

@@ -16,10 +16,6 @@
 #define GPIOB_BASE 0x40020400
 #define GPIOC_BASE 0x40020800
 
-#define GPIOAEN (1U << 0)
-#define GPIOBEN (1U << 1)
-#define GPIOCEN (1U << 2)
-
 #define BLUE_LED (1U << 13)
 #define RED_LED (1U << 14)
 #define GREEN_LED (1U << 15)

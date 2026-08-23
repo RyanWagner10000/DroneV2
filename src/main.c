@@ -20,6 +20,8 @@ int main(void)
     init_rcc();
 
     initGreenLED();
+    initRedLED();
+    initTimer2();
 
     volatile uint32_t counter;
 
@@ -30,12 +32,16 @@ int main(void)
             ;
         }
         onLED(GREEN_LED);
+        onLED(RED_LED);
+        onBuzzer();
         
         for (counter = 0; counter < 1000000; counter++)
         {
             ;
         }
         offLED(GREEN_LED);
+        offLED(RED_LED);
+        offBuzzer();
     }
 
     return 0;

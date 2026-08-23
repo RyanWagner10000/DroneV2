@@ -63,9 +63,10 @@ void init_rcc(void)
     // Set Bus Prescalars
     // APB2 High-speed max is 100MHz, so no division
     RCC->CFGR &= ~(7U << 13);
-    // APB1 Low-speed max is 50MHz, so /2 division
+    // APB1 Low-speed max is 50MHz, so /4 division
+    // When PPRE1 is 
     RCC->CFGR &= ~(7U << 10);
-    RCC->CFGR |= (4U << 10);
+    RCC->CFGR |= (5U << 10);
     // AHB High-speed max is 100MHz, so no division
     RCC->CFGR &= ~(15U << 4);
     
