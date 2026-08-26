@@ -9,6 +9,27 @@
 #include "main.h"
 
 /**
+ * @brief Function to init all the standard peripherals and report success/fail
+ *
+ * @param None
+ *
+ * @return None
+ */
+void initPeripherals(void)
+{
+    init_rcc();
+
+    initGreenLED();
+    initRedLED();
+    initTimer2();
+
+    // Upon success/fail, play noise
+    // Implement logic for pass/fail
+    successNoise();
+    // failNoise();
+}
+
+/**
  * @brief Main forever while-loop
  *
  * @param None
@@ -17,11 +38,7 @@
  */
 int main(void)
 {
-    init_rcc();
-
-    initGreenLED();
-    initRedLED();
-    initTimer2();
+    initPeripherals();
 
     volatile uint32_t counter;
 
@@ -32,16 +49,12 @@ int main(void)
             ;
         }
         onLED(GREEN_LED);
-        onLED(RED_LED);
-        onBuzzer();
         
         for (counter = 0; counter < 1000000; counter++)
         {
             ;
         }
         offLED(GREEN_LED);
-        offLED(RED_LED);
-        offBuzzer();
     }
 
     return 0;

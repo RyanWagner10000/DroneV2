@@ -44,6 +44,8 @@ typedef struct
 
 void onBuzzer(void);
 void offBuzzer(void);
+void successNoise(void);
+void failNoise(void);
 void initTimer2(void);
 
 #endif // TIMER2_H

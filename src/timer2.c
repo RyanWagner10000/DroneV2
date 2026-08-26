@@ -23,6 +23,8 @@ void onBuzzer(void)
     TIM2->SR &= ~(1U << 0);
 
     TIM2->CR1 |= (1U << 0);
+
+    return;
 }
 
 /**
@@ -35,10 +37,105 @@ void onBuzzer(void)
 void offBuzzer(void)
 {
     TIM2->CR1 &= ~(1U << 0);
+
+    return;
 }
 
 /**
- * @brief Initialize Timer2 peripheral
+ * @brief Set frequency of TIM2 CH1
+ *
+ * @param frequency Frequency value in Hz
+ *
+ * @return None
+ */
+void setFrequency(uint32_t frequency)
+{
+    TIM2->ARR = frequency;
+    TIM2->CCR1 = frequency / 2U;
+
+    return;
+}
+
+/**
+ * @brief Preset noise sequence for success status
+ *
+ * @param None
+ *
+ * @return None
+ */
+void successNoise(void)
+{
+    volatile uint32_t counter = 0;
+    uint32_t max = 500000;
+
+    setFrequency(1701U);
+    onBuzzer();
+    for (counter = 0; counter < max; ++counter)
+    {
+        ;
+    }
+    offBuzzer();
+
+    setFrequency(1274U);
+    onBuzzer();
+    for (counter = 0; counter < max; ++counter)
+    {
+        ;
+    }
+    offBuzzer();
+
+    setFrequency(954U);
+    onBuzzer();
+    for (counter = 0; counter < max*2; ++counter)
+    {
+        ;
+    }
+    offBuzzer();
+
+    return;
+}
+
+/**
+ * @brief Preset noise sequence for failure status
+ *
+ * @param None
+ *
+ * @return None
+ */
+void failNoise(void)
+{
+    volatile uint32_t counter = 0;
+    uint32_t max = 600000;
+
+    setFrequency(1515U);
+    onBuzzer();
+    for (counter = 0; counter < max; ++counter)
+    {
+        ;
+    }
+    offBuzzer();
+
+    setFrequency(3821U);
+    onBuzzer();
+    for (counter = 0; counter < max; ++counter)
+    {
+        ;
+    }
+    offBuzzer();
+
+    setFrequency(4544U);
+    onBuzzer();
+    for (counter = 0; counter < max*2; ++counter)
+    {
+        ;
+    }
+    offBuzzer();
+
+    return;
+}
+
+/**
+ * @brief Initialize Timer2 CH1 peripheral
  *
  * @param None
  *
@@ -46,9 +143,6 @@ void offBuzzer(void)
  */
 void initTimer2(void)
 {
-    // 1047 Hz timer for Octave 6 Middle C
-    // UEF = 48,000,000 / ((479 + 1) * (95 + 1)) = 1047 Hz
-
     // Enable clock access to General Purpose Timer 2
     RCC->APB1ENR |= (1U << 0);
     // Enable clock access to GPIOA
@@ -56,7 +150,7 @@ void initTimer2(void)
 
     // Configure GPIOA PA0 to output PWM
     GPIOA->MODER |= (2U << 0);
-    // Set alternate function to PWM
+    // Set alternate function to Timer
     GPIOA->AFRL &= ~(15U << 0); // reset
     GPIOA->AFRL |= (1U << 0); // set
 
@@ -71,20 +165,19 @@ void initTimer2(void)
     // Set counter to 0
     TIM2->CNT = 0;
     // Set Prescaler
-    TIM2->PSC = 479U;
+    TIM2->PSC = 47U;
     // Set Auto-reload Register
-    TIM2->ARR = 95U;
+    TIM2->ARR = 954U;
     
     // Set Capture Compare for channels 1
-    // Set to about Middle-C Octave 6
-    TIM2->CCR1 = 47;
+    TIM2->CCR1 = 477;
 
     // Reset counter with new values
     TIM2->EGR |= (1U << 0);
     // Clear interrupt flag
     TIM2->SR &= ~(1U << 0);
 
-    // TIM2->CR1 |= (1U << 0);
+    // Don't enable, just init
 
     return;
 }
