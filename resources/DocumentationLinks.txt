@@ -1,0 +1,31 @@
+-------------------------------------------------------------------------------------------
+HC-SR04 Ultrasonic Sonar Distance Sensor
+
+Adafruit Pinout
+https://learn.adafruit.com/ultrasonic-sonar-distance-sensors/pinouts
+
+Controllers Tech Documentation and Help
+https://controllerstech.com/hcsr04-ultrasonic-sensor-and-stm32/
+
+Controllers Tech Video
+https://www.youtube.com/watch?v=ti_1ZwRolU4
+
+-------------------------------------------------------------------------------------------
+Adafruit BME680 Temperature, Humidity, Pressure, and Gas Sensor
+
+Adafruit Pinout
+https://learn.adafruit.com/adafruit-bme680-humidity-temperature-barometic-pressure-voc-gas/pinouts
+
+
+
+-------------------------------------------------------------------------------------------
+Adafruit LSM9DS1 Accelerometer + Gyro + Magnetometer 9-DOF
+
+Adafruit Pinout
+https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts
+
+-------------------------------------------------------------------------------------------
+Active Buzzer
+
+Controller Tech Video
+https://www.youtube.com/watch?v=Ex18QDWYa8Q
