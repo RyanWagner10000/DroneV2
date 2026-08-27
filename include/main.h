@@ -10,6 +10,7 @@
 #define MAIN_H
 
 #include <stdint.h>
+#include "fpu.h"
 #include "rcc.h"
 #include "gpio.h"
 #include "timer2.h"

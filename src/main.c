@@ -18,6 +18,7 @@
 void initPeripherals(void)
 {
     init_rcc();
+    init_fpu();
 
     initGreenLED();
     initRedLED();

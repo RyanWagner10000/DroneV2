@@ -185,11 +185,11 @@ This timer is used as the PWM signal required to change the pitch of the buzzer 
 
 Three LED's are used on this build for status signalling. The Blue LED is already on the Blackpill and uses PC13. The Green and Red LED's use pins PC14 and PC15 respectively. There is one 220Ω resistor before each LED.
 
-### Active Buzzer
+### Passive Buzzer
 
-#### Random 3.3V Active Buzzer
+#### Random 3.3V Passive Buzzer
 
-There is one (presumably) 3.3V Active Buzzer used for status signalling along side the LED's. I don't know the manufacturer of this device because there are no markings on it, and I just found it in one of my old beginner kits but I figured I'd incorporate it. This is connected to pin PA0, but will be configured in PWM mode using Timer 2
+There is one (presumably) 3.3V Passive Buzzer used for status signalling along side the LED's. I don't know the manufacturer of this device because there are no markings on it, and I just found it in one of my old beginner kits but I figured I'd incorporate it. This is connected to pin PA0, but will be configured in PWM mode using Timer 2
 
 ### USART
 

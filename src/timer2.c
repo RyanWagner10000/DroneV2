@@ -4,6 +4,8 @@
  * author: Ryan Wagner
  * date: August 18, 2026
  * notes:
+ * Link to site used for timer and frequencies for tones
+ * https://docs.madmachine.io/learn/peripherals/buzzer#new-component
  */
 
 #include "timer2.h"
