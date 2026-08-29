@@ -14,5 +14,6 @@
 #include "rcc.h"
 #include "gpio.h"
 #include "timer2.h"
+#include "timer10.h"
 
 #endif // MAIN_H

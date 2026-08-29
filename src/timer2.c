@@ -88,7 +88,7 @@ void successNoise(void)
 
     setFrequency(954U);
     onBuzzer();
-    for (counter = 0; counter < max*2; ++counter)
+    for (counter = 0; counter < max * 2; ++counter)
     {
         ;
     }
@@ -127,7 +127,7 @@ void failNoise(void)
 
     setFrequency(4544U);
     onBuzzer();
-    for (counter = 0; counter < max*2; ++counter)
+    for (counter = 0; counter < max * 2; ++counter)
     {
         ;
     }
@@ -148,13 +148,13 @@ void initTimer2(void)
     // Enable clock access to General Purpose Timer 2
     RCC->APB1ENR |= (1U << 0);
     // Enable clock access to GPIOA
-    RCC->AHB1ENR |= (1U <<0);
+    RCC->AHB1ENR |= (1U << 0);
 
     // Configure GPIOA PA0 to output PWM
     GPIOA->MODER |= (2U << 0);
     // Set alternate function to Timer
     GPIOA->AFRL &= ~(15U << 0); // reset
-    GPIOA->AFRL |= (1U << 0); // set
+    GPIOA->AFRL |= (1U << 0);   // set
 
     // Set auto reload
     TIM2->CR1 |= (1U << 7);
@@ -170,7 +170,7 @@ void initTimer2(void)
     TIM2->PSC = 47U;
     // Set Auto-reload Register
     TIM2->ARR = 954U;
-    
+
     // Set Capture Compare for channels 1
     TIM2->CCR1 = 477;
 
