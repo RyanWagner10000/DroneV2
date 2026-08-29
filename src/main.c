@@ -18,10 +18,13 @@
 void initPeripherals(void)
 {
     init_rcc();
+    init_fpu();
 
     initGreenLED();
     initRedLED();
+
     initTimer2();
+    initTimer10();
 
     // Upon success/fail, play noise
     // Implement logic for pass/fail
@@ -40,20 +43,12 @@ int main(void)
 {
     initPeripherals();
 
-    volatile uint32_t counter;
-
     while (1)
     {
-        for (counter = 0; counter < 1000000; counter++)
-        {
-            ;
-        }
+        delayMillisecond(100U);
         onLED(GREEN_LED);
-        
-        for (counter = 0; counter < 1000000; counter++)
-        {
-            ;
-        }
+
+        delayMillisecond(100U);
         offLED(GREEN_LED);
     }
 
