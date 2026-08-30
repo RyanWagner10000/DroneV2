@@ -15,7 +15,7 @@
  *
  * @return None
  */
-void initTimer10(void)
+void init_timer10(void)
 {
     // Enable clock access to General Purpose Timer 10
     RCC->APB2ENR |= (1U << 17);
@@ -45,7 +45,7 @@ void initTimer10(void)
  *
  * @return None
  */
-void delayMillisecond(uint32_t num_milliseconds)
+void delay_millisecond(uint32_t num_milliseconds)
 {
     for (uint32_t i = 0; i < num_milliseconds; i++)
     {

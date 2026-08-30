@@ -9,15 +9,15 @@
 #include "gpio.h"
 
 /**
- * @brief Initiate the Blue LED on pin on PD13
+ * @brief Initiate the Blue LED on pin on PC13
  *
  * @param None
  *
  * @return None
  */
-void initBlueLED(void)
+void init_blue_led(void)
 {
-    // Enable clock access to GPIOD
+    // Enable clock access to GPIOC
     RCC->AHB1ENR |= (1U << 2);
 
     // Set mode to output
@@ -28,15 +28,15 @@ void initBlueLED(void)
 }
 
 /**
- * @brief Initiate the Red LED on pin on PD14
+ * @brief Initiate the Red LED on pin on PC14
  *
  * @param None
  *
  * @return None
  */
-void initRedLED(void)
+void init_red_led(void)
 {
-    // Enable clock access to GPIOD
+    // Enable clock access to GPIOC
     RCC->AHB1ENR |= (1U << 2);
 
     // Set PD14 mode to output
@@ -53,9 +53,9 @@ void initRedLED(void)
  *
  * @return None
  */
-void initGreenLED(void)
+void init_green_led(void)
 {
-    // Enable clock access to GPIOD
+    // Enable clock access to GPIOC
     RCC->AHB1ENR |= (1U << 2);
 
     // Set PD12 mode to output
@@ -72,7 +72,7 @@ void initGreenLED(void)
  *
  * @return None
  */
-void onLED(uint32_t led)
+void on_led(uint32_t led)
 {
     // Set pin High
     GPIOC->BSRR |= led;
@@ -87,7 +87,7 @@ void onLED(uint32_t led)
  *
  * @return None
  */
-void offLED(uint32_t led)
+void off_led(uint32_t led)
 {
     // Set pin High
     GPIOC->BSRR |= (led << 16);
@@ -102,7 +102,7 @@ void offLED(uint32_t led)
  *
  * @return None
  */
-void toggleLED(uint32_t led)
+void toggle_led(uint32_t led)
 {
     // Set output of pin High/Low
     GPIOC->ODR ^= led;

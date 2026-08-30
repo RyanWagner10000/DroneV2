@@ -10,7 +10,6 @@
 #define TIMER2_H
 
 #include <stdint.h>
-#include "rcc.h"
 #include "gpio.h"
 
 #define TIM2_BASE (0x40000000)
@@ -42,10 +41,10 @@ typedef struct
     volatile uint32_t OR;        // offset: 0x50
 } timer2_TypeDef;
 
-void onBuzzer(void);
-void offBuzzer(void);
-void successNoise(void);
-void failNoise(void);
-void initTimer2(void);
+void on_buzzer(void);
+void off_buzzer(void);
+void success_noise(void);
+void fail_noise(void);
+void init_timer2(void);
 
 #endif // TIMER2_H

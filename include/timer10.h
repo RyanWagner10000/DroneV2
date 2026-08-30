@@ -10,7 +10,6 @@
 #define TIMER10_H
 
 #include <stdint.h>
-#include "rcc.h"
 #include "gpio.h"
 
 #define TIM10_BASE (0x40014400)
@@ -41,7 +40,7 @@ typedef struct
     volatile uint32_t RESERVED7; // offset: 0x4C
 } timer10_TypeDef;
 
-void delayMillisecond(uint32_t num_milliseconds);
-void initTimer10(void);
+void delay_millisecond(uint32_t num_milliseconds);
+void init_timer10(void);
 
 #endif // TIMER10_H
