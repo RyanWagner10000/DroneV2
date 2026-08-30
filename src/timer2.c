@@ -17,7 +17,7 @@
  *
  * @return None
  */
-void onBuzzer(void)
+void on_buzzer(void)
 {
     // Reset counter with new values
     TIM2->EGR |= (1U << 0);
@@ -36,7 +36,7 @@ void onBuzzer(void)
  *
  * @return None
  */
-void offBuzzer(void)
+void off_buzzer(void)
 {
     TIM2->CR1 &= ~(1U << 0);
 
@@ -50,7 +50,7 @@ void offBuzzer(void)
  *
  * @return None
  */
-void setFrequency(uint32_t frequency)
+void set_frequency(uint32_t frequency)
 {
     TIM2->ARR = frequency;
     TIM2->CCR1 = frequency / 2U;
@@ -65,34 +65,34 @@ void setFrequency(uint32_t frequency)
  *
  * @return None
  */
-void successNoise(void)
+void success_noise(void)
 {
     volatile uint32_t counter = 0;
     uint32_t max = 500000;
 
-    setFrequency(1701U);
-    onBuzzer();
+    set_frequency(1701U);
+    on_buzzer();
     for (counter = 0; counter < max; ++counter)
     {
         ;
     }
-    offBuzzer();
+    off_buzzer();
 
-    setFrequency(1274U);
-    onBuzzer();
+    set_frequency(1274U);
+    on_buzzer();
     for (counter = 0; counter < max; ++counter)
     {
         ;
     }
-    offBuzzer();
+    off_buzzer();
 
-    setFrequency(954U);
-    onBuzzer();
+    set_frequency(954U);
+    on_buzzer();
     for (counter = 0; counter < max * 2; ++counter)
     {
         ;
     }
-    offBuzzer();
+    off_buzzer();
 
     return;
 }
@@ -104,34 +104,34 @@ void successNoise(void)
  *
  * @return None
  */
-void failNoise(void)
+void fail_noise(void)
 {
     volatile uint32_t counter = 0;
     uint32_t max = 600000;
 
-    setFrequency(1515U);
-    onBuzzer();
+    set_frequency(1515U);
+    on_buzzer();
     for (counter = 0; counter < max; ++counter)
     {
         ;
     }
-    offBuzzer();
+    off_buzzer();
 
-    setFrequency(3821U);
-    onBuzzer();
+    set_frequency(3821U);
+    on_buzzer();
     for (counter = 0; counter < max; ++counter)
     {
         ;
     }
-    offBuzzer();
+    off_buzzer();
 
-    setFrequency(4544U);
-    onBuzzer();
+    set_frequency(4544U);
+    on_buzzer();
     for (counter = 0; counter < max * 2; ++counter)
     {
         ;
     }
-    offBuzzer();
+    off_buzzer();
 
     return;
 }
@@ -143,7 +143,7 @@ void failNoise(void)
  *
  * @return None
  */
-void initTimer2(void)
+void init_timer2(void)
 {
     // Enable clock access to General Purpose Timer 2
     RCC->APB1ENR |= (1U << 0);

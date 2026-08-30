@@ -103,10 +103,10 @@ void Default_Handler(void)
 
 void HardFault_Handler(void)
 {
-    initBlueLED();
+    init_blue_led();
     while (1)
     {
-        toggleLED(BLUE_LED);
+        toggle_led(BLUE_LED);
         for (uint32_t i = 0; i < 500000; i++)
             ;
     }
@@ -114,10 +114,10 @@ void HardFault_Handler(void)
 
 void BusFault_Handler(void)
 {
-    initBlueLED();
+    init_blue_led();
     while (1)
     {
-        toggleLED(BLUE_LED);
+        toggle_led(BLUE_LED);
         for (uint32_t i = 0; i < 500000; i++)
             ;
     }
@@ -125,10 +125,10 @@ void BusFault_Handler(void)
 
 void UsageFault_Handler(void)
 {
-    initBlueLED();
+    init_blue_led();
     while (1)
     {
-        toggleLED(BLUE_LED);
+        toggle_led(BLUE_LED);
         for (uint32_t i = 0; i < 500000; i++)
             ;
     }

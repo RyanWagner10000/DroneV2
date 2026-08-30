@@ -15,5 +15,6 @@
 #include "gpio.h"
 #include "timer2.h"
 #include "timer10.h"
+#include "lsm9ds1.h"
 
 #endif // MAIN_H

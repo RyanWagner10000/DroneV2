@@ -20,16 +20,36 @@ void initPeripherals(void)
     init_rcc();
     init_fpu();
 
-    initGreenLED();
-    initRedLED();
+    init_green_led();
+    init_red_led();
+    init_blue_led();
+    off_led(GREEN_LED);
+    off_led(RED_LED);
+    off_led(BLUE_LED);
 
-    initTimer2();
-    initTimer10();
+    init_timer2();
+    init_timer10();
+
+    init_spi1();
 
     // Upon success/fail, play noise
     // Implement logic for pass/fail
-    successNoise();
-    // failNoise();
+    success_noise();
+    // fail_noise();
+}
+
+/**
+ * @brief Function to init all the modules/sensor boards and report success/fail
+ *
+ * @param None
+ *
+ * @return None
+ */
+void initModules(void)
+{
+    init_lsm9ds1();
+
+    return;
 }
 
 /**
@@ -42,14 +62,20 @@ void initPeripherals(void)
 int main(void)
 {
     initPeripherals();
+    
+    delay_millisecond(100);
+
+    initModules();
+
+    delay_millisecond(100);
 
     while (1)
     {
-        delayMillisecond(100U);
-        onLED(GREEN_LED);
+        delay_millisecond(100U);
+        on_led(GREEN_LED);
 
-        delayMillisecond(100U);
-        offLED(GREEN_LED);
+        delay_millisecond(100U);
+        off_led(GREEN_LED);
     }
 
     return 0;

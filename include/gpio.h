@@ -38,11 +38,11 @@ typedef struct
     volatile uint32_t AFRH;    // offset: 0x24
 } GPIO_TypeDef;
 
-void initGreenLED(void);
-void initRedLED(void);
-void initBlueLED(void);
-void onLED(uint32_t led);
-void offLED(uint32_t led);
-void toggleLED(uint32_t led);
+void init_green_led(void);
+void init_red_led(void);
+void init_blue_led(void);
+void on_led(uint32_t led);
+void off_led(uint32_t led);
+void toggle_led(uint32_t led);
 
 #endif // GPIO_H
