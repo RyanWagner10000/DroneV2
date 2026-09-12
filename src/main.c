@@ -37,8 +37,8 @@ void initPeripherals(void)
 
     // Upon success/fail, play noise
     // Implement logic for pass/fail
-    success_noise();
-    // fail_noise(5,0);
+    // success_noise();
+    fail_noise(3,2);
 }
 
 /**
@@ -75,10 +75,10 @@ int main(void)
 
     while (1)
     {
-        delay_millisecond(100U);
+        delay_millisecond(500U);
         on_led(GREEN_LED);
 
-        delay_millisecond(100U);
+        delay_millisecond(500U);
         off_led(GREEN_LED);
     }
 
