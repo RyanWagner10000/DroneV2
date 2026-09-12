@@ -16,5 +16,6 @@
 #include "timer2.h"
 #include "timer10.h"
 #include "lsm9ds1.h"
+#include "usart.h"
 
 #endif // MAIN_H

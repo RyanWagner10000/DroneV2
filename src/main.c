@@ -27,6 +27,9 @@ void initPeripherals(void)
     off_led(RED_LED);
     off_led(BLUE_LED);
 
+    init_usart();
+    usart_write_string("USART2 Working!\n");
+
     init_timer2();
     init_timer10();
 
@@ -35,7 +38,7 @@ void initPeripherals(void)
     // Upon success/fail, play noise
     // Implement logic for pass/fail
     success_noise();
-    // fail_noise();
+    // fail_noise(5,0);
 }
 
 /**
@@ -47,6 +50,7 @@ void initPeripherals(void)
  */
 void initModules(void)
 {
+    // Init IMU module
     init_lsm9ds1();
 
     return;

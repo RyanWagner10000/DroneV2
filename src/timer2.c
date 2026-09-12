@@ -68,9 +68,9 @@ void set_frequency(uint32_t frequency)
 void success_noise(void)
 {
     volatile uint32_t counter = 0;
-    uint32_t max = 500000;
+    uint32_t max = 550000;
 
-    set_frequency(1701U);
+    set_frequency(1911U);
     on_buzzer();
     for (counter = 0; counter < max; ++counter)
     {
@@ -78,7 +78,7 @@ void success_noise(void)
     }
     off_buzzer();
 
-    set_frequency(1274U);
+    set_frequency(1516U);
     on_buzzer();
     for (counter = 0; counter < max; ++counter)
     {
@@ -86,7 +86,7 @@ void success_noise(void)
     }
     off_buzzer();
 
-    set_frequency(954U);
+    set_frequency(1275U);
     on_buzzer();
     for (counter = 0; counter < max * 2; ++counter)
     {
@@ -100,38 +100,61 @@ void success_noise(void)
 /**
  * @brief Preset noise sequence for failure status
  *
- * @param None
+ * @param beeps Number of beeps for warning. -1 means inf.
+ * @param fast Whether to beep fast(1) or slow(0)
  *
  * @return None
  */
-void fail_noise(void)
+void fail_noise(int8_t beeps, uint8_t fast)
 {
     volatile uint32_t counter = 0;
-    uint32_t max = 600000;
-
-    set_frequency(1515U);
-    on_buzzer();
-    for (counter = 0; counter < max; ++counter)
+    uint8_t inf = 0;
+    if (beeps < 0)
     {
-        ;
+        beeps = 1;
     }
-    off_buzzer();
-
-    set_frequency(3821U);
-    on_buzzer();
-    for (counter = 0; counter < max; ++counter)
+    
+    while (beeps > 0)
     {
-        ;
-    }
-    off_buzzer();
+        for (counter = 0; counter < 2600000; ++counter)
+        {
+            ;
+        }
 
-    set_frequency(4544U);
-    on_buzzer();
-    for (counter = 0; counter < max * 2; ++counter)
-    {
-        ;
+        set_frequency(2272U);
+        on_buzzer();
+        for (counter = 0; counter < 700000; ++counter)
+        {
+            ;
+        }
+        off_buzzer();
+
+        if (!fast)
+        {
+            for (counter = 0; counter < 500000; ++counter)
+            {
+                ;
+            }
+        }
+        for (counter = 0; counter < 300000; ++counter)
+        {
+            ;
+        }
+
+        set_frequency(2272U);
+        on_buzzer();
+        for (counter = 0; counter < 700000; ++counter)
+        {
+            ;
+        }
+        off_buzzer();
+
+        --beeps;
+        if (inf)
+        {
+            ++beeps;
+        }
     }
-    off_buzzer();
 
     return;
 }

@@ -44,7 +44,7 @@ typedef struct
 void on_buzzer(void);
 void off_buzzer(void);
 void success_noise(void);
-void fail_noise(void);
+void fail_noise(int8_t beeps, uint8_t fast);
 void init_timer2(void);
 
 #endif // TIMER2_H
