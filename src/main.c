@@ -8,6 +8,9 @@
 
 #include "main.h"
 
+int16_t accel_xyz[3] = {0, 0, 0};
+// int16_t gyro_xyz[3] = {0, 0, 0};
+
 /**
  * @brief Function to init all the standard peripherals and report success/fail
  *
@@ -37,8 +40,8 @@ void initPeripherals(void)
 
     // Upon success/fail, play noise
     // Implement logic for pass/fail
-    // success_noise();
-    fail_noise(3,2);
+    success_noise();
+    // fail_noise(3,2);
 }
 
 /**
@@ -66,7 +69,7 @@ void initModules(void)
 int main(void)
 {
     initPeripherals();
-    
+
     delay_millisecond(100);
 
     initModules();
@@ -75,10 +78,21 @@ int main(void)
 
     while (1)
     {
-        delay_millisecond(500U);
+        delay_millisecond(100U);
         on_led(GREEN_LED);
 
-        delay_millisecond(500U);
+        // get_accel_data(accel_xyz);
+        get_gyro_data(accel_xyz);
+        usart_write_string("[");
+        usart_write_number((int32_t) accel_xyz[0]);
+        usart_write_char(' ');
+        usart_write_number((int32_t) accel_xyz[1]);
+        usart_write_char(' ');
+        usart_write_number((int32_t) accel_xyz[2]);
+        usart_write_char(']');
+        usart_write_char('\n');
+
+        delay_millisecond(100U);
         off_led(GREEN_LED);
     }
 

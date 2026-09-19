@@ -96,5 +96,7 @@ typedef enum
 } Sensor;
 
 void init_lsm9ds1(void);
+void get_accel_data(int16_t *xyz);
+void get_gyro_data(int16_t *xyz);
 
 #endif // LSM9DS1_H
