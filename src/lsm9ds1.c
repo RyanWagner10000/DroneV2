@@ -9,6 +9,8 @@
 #include "lsm9ds1.h"
 
 static uint8_t MAX_BUFFER_SIZE = 8;
+uint8_t IMU_XL_FLAG = 0;
+uint8_t IMU_GY_FLAG = 0;
 
 /**
  * @brief Internal function to write byte to specific register on the IMU module
@@ -132,7 +134,7 @@ static void read_register_multi(Sensor sensor, uint8_t address, uint8_t *values,
     else if (sensor == M)
     {
         // Set CS pin LOW
-        disable_csag_spi1();
+        enable_csm_spi1();
 
         // Send write operation
         transfer_spi1(tx_buffer, rx_buffer, length + 1);
@@ -185,42 +187,44 @@ uint8_t get_who_am_i_m(void)
  */
 void init_lsm9ds1(void)
 {
-    uint8_t value = 0;
-
     // Gyroscope
     write_register_single(AG, CTRL_REG2_G, 0x02);
     write_register_single(AG, CTRL_REG1_G, 0xCB);
+    // INT1 setup
+    GPIOA->PUPDR |= (2U << 2); // PA1
+    write_register_single(AG, INT1_CTRL, 0x02);
 
     // Accelerometer
     // 952 Hz ODR; +/- 4g; 211 Hz BW AA filter
     write_register_single(AG, CTRL_REG6_XL, 0xD5);
+    // INT2 setup
+    GPIOA->PUPDR |= (2U << 8); // PA4
+    write_register_single(AG, INT2_CTRL, 0x01);
 
     // Magnetometer
-    value |= (2U << 5); // OM [1:0]
-    value |= (4U << 2); // DO [1:0]
-    write_register_single(M, CTRL_REG1_M, value);
-    value = 0;
+    write_register_single(M, CTRL_REG1_M, 0xD0);
 
-    value |= (2U << 2); // OMZ [1:0]
-    write_register_single(M, CTRL_REG4_M, value);
-    value = 0;
+    write_register_single(M, CTRL_REG2_M, 0x20);
 
-    value |= (1U << 7); // I2C_DISABLE
-    value &= ~(3U << 0); // MD[1:0]
-    write_register_single(M, CTRL_REG3_M, value);
-    value = 0;
+    write_register_single(M, CTRL_REG3_M, 0x84);
+
+    write_register_single(M, CTRL_REG4_M, 0x10);
+
+    write_register_single(M, INT_CFG_M, 0x01);
 
     uint8_t whoami_ag = get_who_am_i_ag();
-    if (whoami_ag == 0x68)
+    if (whoami_ag != 0x68)
     {
-        ; // Do something to confirm it's reading
+        on_led(RED_LED);
+        fail_noise(2,1);
     }
 
-    uint8_t whoami_m = get_who_am_i_m();
-    if (whoami_m == 0x3D)
-    {
-        ; // Do something to confirm it's reading
-    }
+    // uint8_t whoami_m = get_who_am_i_m();
+    // if (whoami_m != 0x3D)
+    // {
+    //     on_led(RED_LED);
+    //     fail_noise(2,1);
+    // }
 
     return;
 }
@@ -262,5 +266,75 @@ void get_gyro_data(int16_t *xyz)
     xyz[1] = ((data_buffer[3] << 8) | data_buffer[2]);
     xyz[2] = ((data_buffer[5] << 8) | data_buffer[4]);
 
+    return;
+}
+
+/**
+ * @brief Get 3-axis magnetometer data
+ *
+ * @param xyz Array of values to hold 16-bit X, Y, and Z values
+ *
+ * @return None
+ */
+void get_mag_data(int16_t *xyz)
+{
+    uint8_t data_buffer[] = {0, 0, 0, 0, 0, 0};
+    read_register_multi(M, OUT_X_L_M, data_buffer, 6);
+
+    // Combine high and low bytes to form data
+    xyz[0] = ((data_buffer[1] << 8) | data_buffer[0]);
+    xyz[1] = ((data_buffer[3] << 8) | data_buffer[2]);
+    xyz[2] = ((data_buffer[5] << 8) | data_buffer[4]);
+
+    return;
+}
+
+/**
+ * @brief Gets the Accelerometer update flag
+ *
+ * @param None
+ *
+ * @return None
+ */
+uint8_t getImuXLFlag(void)
+{
+    return IMU_XL_FLAG;
+}
+
+/**
+ * @brief Sets the Accelerometer update flag
+ *
+ * @param value Value to place in the flag variable
+ *
+ * @return None
+ */
+void setImuXLFlag(uint8_t value)
+{
+    IMU_XL_FLAG = value;
+    return;
+}
+
+/**
+ * @brief Gets the Gyroscope update flag
+ *
+ * @param None
+ *
+ * @return None
+ */
+uint8_t getImuGYFlag(void)
+{
+    return IMU_GY_FLAG;
+}
+
+/**
+ * @brief Sets the Gyroscope update flag
+ *
+ * @param value Value to place in the flag variable
+ *
+ * @return None
+ */
+void setImuGYFlag(uint8_t value)
+{
+    IMU_GY_FLAG = value;
     return;
 }

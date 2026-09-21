@@ -1,5 +1,7 @@
 #include <stdint.h>
 #include "gpio.h"
+#include "lsm9ds1.h"
+#include "exti.h"
 
 extern uint32_t _estack;
 extern uint32_t _etext;
@@ -13,6 +15,10 @@ void Reset_Handler(void);
 void HardFault_Handler(void);
 void UsageFault_Handler(void);
 void BusFault_Handler(void);
+
+void EXTI1_IRQHandler(void);
+void EXTI4_IRQHandler(void);
+
 int main();
 
 void NMI_Handler(void) __attribute__((weak, alias("Default_Handler")));
@@ -42,10 +48,10 @@ uint32_t vector_tbl[] __attribute__((section(".isr_vector_tbl"))) = {
     (uint32_t)&HardFault_Handler,  // 4 : Flash global interrupt
     (uint32_t)&HardFault_Handler,  // 5 : RCC global interrupt
     (uint32_t)&HardFault_Handler,  // 6 : EXTI Line0 interrupt
-    (uint32_t)&HardFault_Handler,  // 7 : EXTI Line1 interrupt
+    (uint32_t)&EXTI1_IRQHandler,   // 7 : EXTI Line1 interrupt
     (uint32_t)&HardFault_Handler,  // 8 : EXTI Line2 interrupt
     (uint32_t)&HardFault_Handler,  // 9 : EXTI Line3 interrupt
-    (uint32_t)&HardFault_Handler,  // 10: EXTI Line4 interrupt
+    (uint32_t)&EXTI4_IRQHandler,   // 10: EXTI Line4 interrupt
     (uint32_t)&HardFault_Handler,  // 11: DMA1 Stream0 global interrupt
     (uint32_t)&HardFault_Handler,  // 12: DMA1 Stream1 global interrupt
     (uint32_t)&HardFault_Handler,  // 13: DMA1 Stream2 global interrupt
@@ -93,6 +99,20 @@ uint32_t vector_tbl[] __attribute__((section(".isr_vector_tbl"))) = {
     (uint32_t)&HardFault_Handler,  // 84: SPI4 global interrupt
     (uint32_t)&HardFault_Handler,  // 85: SPI5 global interrupt
 };
+
+void EXTI1_IRQHandler(void)
+{
+    EXTI->PR |= (1U << 1);
+    setImuGYFlag(1);
+    return;
+}
+
+void EXTI4_IRQHandler(void)
+{
+    EXTI->PR |= (1U << 4);
+    setImuXLFlag(1);
+    return;
+}
 
 void Default_Handler(void)
 {
@@ -165,5 +185,6 @@ void Reset_Handler(void)
     // Call the application's main function
     main();
 
-    while(1);
+    while (1)
+        ;
 }

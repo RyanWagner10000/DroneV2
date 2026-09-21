@@ -9,7 +9,8 @@
 #include "main.h"
 
 int16_t accel_xyz[3] = {0, 0, 0};
-// int16_t gyro_xyz[3] = {0, 0, 0};
+int16_t gyro_xyz[3] = {0, 0, 0};
+// int16_t mag_xyz[3] = {0, 0, 0};
 
 /**
  * @brief Function to init all the standard peripherals and report success/fail
@@ -30,8 +31,12 @@ void initPeripherals(void)
     off_led(RED_LED);
     off_led(BLUE_LED);
 
+    init_imu_exti();
+
     init_usart();
     usart_write_string("USART2 Working!\n");
+
+    init_imu_exti();
 
     init_timer2();
     init_timer10();
@@ -41,7 +46,6 @@ void initPeripherals(void)
     // Upon success/fail, play noise
     // Implement logic for pass/fail
     success_noise();
-    // fail_noise(3,2);
 }
 
 /**
@@ -78,22 +82,32 @@ int main(void)
 
     while (1)
     {
-        delay_millisecond(100U);
-        on_led(GREEN_LED);
+        // delay_millisecond(50U);
+        // on_led(GREEN_LED);
 
-        // get_accel_data(accel_xyz);
-        get_gyro_data(accel_xyz);
-        usart_write_string("[");
-        usart_write_number((int32_t) accel_xyz[0]);
-        usart_write_char(' ');
-        usart_write_number((int32_t) accel_xyz[1]);
-        usart_write_char(' ');
-        usart_write_number((int32_t) accel_xyz[2]);
-        usart_write_char(']');
-        usart_write_char('\n');
+        if (getImuXLFlag() == 1)
+        {
+            setImuXLFlag(0);
+            get_accel_data(accel_xyz);
 
-        delay_millisecond(100U);
-        off_led(GREEN_LED);
+            usart_write_string("[");
+            usart_write_number((int32_t)accel_xyz[0]);
+            usart_write_char(' ');
+            usart_write_number((int32_t)accel_xyz[1]);
+            usart_write_char(' ');
+            usart_write_number((int32_t)accel_xyz[2]);
+            usart_write_char(']');
+            usart_write_char('\n');
+        }
+
+        if (getImuGYFlag() == 1)
+        {
+            setImuGYFlag(0);
+            get_gyro_data(gyro_xyz);
+        }
+
+        // delay_millisecond(50U);
+        // off_led(GREEN_LED);
     }
 
     return 0;
