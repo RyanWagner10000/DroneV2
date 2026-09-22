@@ -11,6 +11,7 @@
 
 #include <stdint.h>
 #include "spi1.h"
+#include "timer2.h"
 
 #define READ_OPERATION (1U << 7)
 
@@ -96,5 +97,12 @@ typedef enum
 } Sensor;
 
 void init_lsm9ds1(void);
+void get_accel_data(int16_t *xyz);
+void get_gyro_data(int16_t *xyz);
+void get_mag_data(int16_t *xyz);
+uint8_t getImuXLFlag(void);
+void setImuXLFlag(uint8_t value);
+uint8_t getImuGYFlag(void);
+void setImuGYFlag(uint8_t value);
 
 #endif // LSM9DS1_H

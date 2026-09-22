@@ -38,6 +38,8 @@ void init_rcc(void)
 
     // Configure PLL register
     uint32_t pllcfgr = RCC->PLLCFGR;
+    // Use HSE oscillator
+    pllcfgr |= (1U << 22);
     // Clear, then wrtie M section
     pllcfgr &= ~(63U << 0);
     pllcfgr |= (25U << 0); // Set to / 25
@@ -66,7 +68,8 @@ void init_rcc(void)
     // APB1 Low-speed max is 50MHz, so /4 division
     // When PPRE1 is 
     RCC->CFGR &= ~(7U << 10);
-    RCC->CFGR |= (5U << 10);
+    // RCC->CFGR |= (5U << 10); // /4
+    RCC->CFGR |= (4U << 10); // /2
     // AHB High-speed max is 100MHz, so no division
     RCC->CFGR &= ~(15U << 4);
     

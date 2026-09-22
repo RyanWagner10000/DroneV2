@@ -27,7 +27,7 @@ void init_spi1(void)
     RCC->APB2ENR |= (1U << 12);
 
     // Set pin mode for PA5, PA6, PA7 to alternate function
-    // Set pin mode for PB0, and PB1 to output for chip select
+    // Set pin mode for PB0 and PB1 to output for chip select
     // Clear first
     GPIOA->MODER &= ~(3U << 10); // Clear 0b00
     GPIOA->MODER &= ~(3U << 12); // Clear 0b00
@@ -35,11 +35,11 @@ void init_spi1(void)
     GPIOB->MODER &= ~(3U << 0);  // Clear 0b00
     GPIOB->MODER &= ~(3U << 2);  // Clear 0b00
     // Then set
-    GPIOA->MODER |= (2U << 10);  // AF mode 0b10
-    GPIOA->MODER |= (2U << 12);  // AF mode 0b10
+    GPIOA->MODER |= (2U << 10); // AF mode 0b10
+    GPIOA->MODER |= (2U << 12); // AF mode 0b10
     GPIOA->MODER |= (2U << 14); // AF mode 0b10
-    GPIOB->MODER |= (1U << 0); // Output mode 0b01
-    GPIOB->MODER |= (1U << 2); // Output mode 0b01
+    GPIOB->MODER |= (1U << 0);  // Output mode 0b01
+    GPIOB->MODER |= (1U << 2);  // Output mode 0b01
 
     // Set alternate function mode for PA5, PA6, PA7
     // Clear first

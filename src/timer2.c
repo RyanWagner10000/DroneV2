@@ -68,9 +68,9 @@ void set_frequency(uint32_t frequency)
 void success_noise(void)
 {
     volatile uint32_t counter = 0;
-    uint32_t max = 500000;
+    uint32_t max = 800000;
 
-    set_frequency(1701U);
+    set_frequency(3822U);
     on_buzzer();
     for (counter = 0; counter < max; ++counter)
     {
@@ -78,7 +78,7 @@ void success_noise(void)
     }
     off_buzzer();
 
-    set_frequency(1274U);
+    set_frequency(3033U);
     on_buzzer();
     for (counter = 0; counter < max; ++counter)
     {
@@ -86,7 +86,7 @@ void success_noise(void)
     }
     off_buzzer();
 
-    set_frequency(954U);
+    set_frequency(2550U);
     on_buzzer();
     for (counter = 0; counter < max * 2; ++counter)
     {
@@ -100,38 +100,50 @@ void success_noise(void)
 /**
  * @brief Preset noise sequence for failure status
  *
- * @param None
+ * @param count Number of TIMES it beeps for warning. -1 means inf.
+ * @param beeps Number of beeps for warning.
  *
  * @return None
  */
-void fail_noise(void)
+void fail_noise(int8_t count, uint8_t beeps)
 {
     volatile uint32_t counter = 0;
-    uint32_t max = 600000;
-
-    set_frequency(1515U);
-    on_buzzer();
-    for (counter = 0; counter < max; ++counter)
+    uint8_t inf = 0;
+    if (count < 0)
     {
-        ;
+        count = 1;
     }
-    off_buzzer();
-
-    set_frequency(3821U);
-    on_buzzer();
-    for (counter = 0; counter < max; ++counter)
-    {
-        ;
-    }
-    off_buzzer();
 
     set_frequency(4544U);
-    on_buzzer();
-    for (counter = 0; counter < max * 2; ++counter)
+
+    while (count > 0)
     {
-        ;
+        for (uint8_t i = 0; i < beeps; i++)
+        {
+            on_buzzer();
+            for (counter = 0; counter < 700000; ++counter)
+            {
+                ;
+            }
+            off_buzzer();
+
+            for (counter = 0; counter < 500000; ++counter)
+            {
+                ;
+            }
+        }
+
+        for (counter = 0; counter < 1500000; ++counter)
+        {
+            ;
+        }
+
+        --count;
+        if (inf)
+        {
+            ++count;
+        }
     }
-    off_buzzer();
 
     return;
 }

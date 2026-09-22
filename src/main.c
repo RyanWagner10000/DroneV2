@@ -8,6 +8,10 @@
 
 #include "main.h"
 
+int16_t accel_xyz[3] = {0, 0, 0};
+int16_t gyro_xyz[3] = {0, 0, 0};
+// int16_t mag_xyz[3] = {0, 0, 0};
+
 /**
  * @brief Function to init all the standard peripherals and report success/fail
  *
@@ -27,6 +31,13 @@ void initPeripherals(void)
     off_led(RED_LED);
     off_led(BLUE_LED);
 
+    init_imu_exti();
+
+    init_usart();
+    usart_write_string("USART2 Working!\n");
+
+    init_imu_exti();
+
     init_timer2();
     init_timer10();
 
@@ -35,7 +46,6 @@ void initPeripherals(void)
     // Upon success/fail, play noise
     // Implement logic for pass/fail
     success_noise();
-    // fail_noise();
 }
 
 /**
@@ -47,7 +57,22 @@ void initPeripherals(void)
  */
 void initModules(void)
 {
+    // Init IMU module
     init_lsm9ds1();
+
+    return;
+}
+
+static void print_xyz(int16_t *xyz)
+{
+    usart_write_string("[");
+    usart_write_number((int32_t)xyz[0]);
+    usart_write_char(' ');
+    usart_write_number((int32_t)xyz[1]);
+    usart_write_char(' ');
+    usart_write_number((int32_t)xyz[2]);
+    usart_write_char(']');
+    usart_write_char('\n');
 
     return;
 }
@@ -62,20 +87,32 @@ void initModules(void)
 int main(void)
 {
     initPeripherals();
-    
+
     delay_millisecond(100);
 
     initModules();
 
     delay_millisecond(100);
 
+    on_led(GREEN_LED);
+
     while (1)
     {
-        delay_millisecond(100U);
-        on_led(GREEN_LED);
+        if (getImuXLFlag() == 1)
+        {
+            setImuXLFlag(0);
+            get_accel_data(accel_xyz);
 
-        delay_millisecond(100U);
-        off_led(GREEN_LED);
+            // print_xyz(accel_xyz);
+        }
+
+        if (getImuGYFlag() == 1)
+        {
+            setImuGYFlag(0);
+            get_gyro_data(gyro_xyz);
+
+            // print_xyz(gyro_xyz);
+        }
     }
 
     return 0;
