@@ -63,6 +63,20 @@ void initModules(void)
     return;
 }
 
+static void print_xyz(int16_t *xyz)
+{
+    usart_write_string("[");
+    usart_write_number((int32_t)xyz[0]);
+    usart_write_char(' ');
+    usart_write_number((int32_t)xyz[1]);
+    usart_write_char(' ');
+    usart_write_number((int32_t)xyz[2]);
+    usart_write_char(']');
+    usart_write_char('\n');
+
+    return;
+}
+
 /**
  * @brief Main forever while-loop
  *
@@ -80,34 +94,25 @@ int main(void)
 
     delay_millisecond(100);
 
+    on_led(GREEN_LED);
+
     while (1)
     {
-        // delay_millisecond(50U);
-        // on_led(GREEN_LED);
-
         if (getImuXLFlag() == 1)
         {
             setImuXLFlag(0);
             get_accel_data(accel_xyz);
 
-            usart_write_string("[");
-            usart_write_number((int32_t)accel_xyz[0]);
-            usart_write_char(' ');
-            usart_write_number((int32_t)accel_xyz[1]);
-            usart_write_char(' ');
-            usart_write_number((int32_t)accel_xyz[2]);
-            usart_write_char(']');
-            usart_write_char('\n');
+            // print_xyz(accel_xyz);
         }
 
         if (getImuGYFlag() == 1)
         {
             setImuGYFlag(0);
             get_gyro_data(gyro_xyz);
-        }
 
-        // delay_millisecond(50U);
-        // off_led(GREEN_LED);
+            // print_xyz(gyro_xyz);
+        }
     }
 
     return 0;
