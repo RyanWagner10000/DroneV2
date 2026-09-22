@@ -222,9 +222,8 @@ void init_lsm9ds1(void)
     uint8_t whoami_m = get_who_am_i_m();
     if (whoami_m != 0x3D)
     {
-        ;
-        // on_led(RED_LED);
-        // fail_noise(1,2);
+        on_led(RED_LED);
+        fail_noise(1,2);
     }
 
     return;
