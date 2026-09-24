@@ -43,5 +43,7 @@ void init_usart(void);
 void usart_write_char(uint8_t character);
 void usart_write_string(const char *string);
 void usart_write_number(int32_t value);
+void str_concat(char *str1, char *str2, char *concat);
+uint32_t int_to_str(int32_t n, char *buffer);
 
 #endif // USART_H

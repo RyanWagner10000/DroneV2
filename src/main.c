@@ -42,6 +42,7 @@ void initPeripherals(void)
     init_timer10();
 
     init_spi1();
+    init_spi3();
 
     // Upon success/fail, play noise
     // Implement logic for pass/fail
@@ -63,19 +64,19 @@ void initModules(void)
     return;
 }
 
-static void print_xyz(int16_t *xyz)
-{
-    usart_write_string("[");
-    usart_write_number((int32_t)xyz[0]);
-    usart_write_char(' ');
-    usart_write_number((int32_t)xyz[1]);
-    usart_write_char(' ');
-    usart_write_number((int32_t)xyz[2]);
-    usart_write_char(']');
-    usart_write_char('\n');
+// static void print_xyz(int16_t *xyz)
+// {
+//     usart_write_string("[");
+//     usart_write_number((int32_t)xyz[0]);
+//     usart_write_char(' ');
+//     usart_write_number((int32_t)xyz[1]);
+//     usart_write_char(' ');
+//     usart_write_number((int32_t)xyz[2]);
+//     usart_write_char(']');
+//     usart_write_char('\n');
 
-    return;
-}
+//     return;
+// }
 
 /**
  * @brief Main forever while-loop

@@ -18,5 +18,6 @@
 #include "lsm9ds1.h"
 #include "usart.h"
 #include "exti.h"
+#include "nrf24.h"
 
 #endif // MAIN_H
