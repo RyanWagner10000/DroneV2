@@ -32,11 +32,10 @@ void initPeripherals(void)
     off_led(BLUE_LED);
 
     init_imu_exti();
+    init_radio_exti();
 
     init_usart();
     usart_write_string("USART2 Working!\n");
-
-    init_imu_exti();
 
     init_timer2();
     init_timer10();
@@ -60,6 +59,7 @@ void initModules(void)
 {
     // Init IMU module
     init_lsm9ds1();
+    init_radio(0);
 
     return;
 }
@@ -97,19 +97,32 @@ int main(void)
 
     on_led(GREEN_LED);
 
+    // Struct to hold TxRx data from ground-station
+    RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
+    set_rx_mode();
+
     while (1)
     {
-        if (getImuXLFlag() == 1)
+        if (get_radio_ready() == 1)
         {
-            setImuXLFlag(0);
+            // Read Rx data, print if available
+            read_radio(&packet, P0_PACKET_SIZE);
+
+            // Print packet for confirmation
+            // printPacket(packet);
+        }
+
+        if (get_imu_XL_flag() == 1)
+        {
+            reset_imu_XL_flag();
             get_accel_data(accel_xyz);
 
             // print_xyz(accel_xyz);
         }
 
-        if (getImuGYFlag() == 1)
+        if (get_imu_GY_flag() == 1)
         {
-            setImuGYFlag(0);
+            reset_imu_GY_flag();
             get_gyro_data(gyro_xyz);
 
             // print_xyz(gyro_xyz);

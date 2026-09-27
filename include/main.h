@@ -20,4 +20,16 @@
 #include "exti.h"
 #include "nrf24.h"
 
+enum CONTROLLER_BUTTON
+{
+    BUTTON_A = 0,
+    BUTTON_B = 1,
+    BUTTON_X = 2,
+    BUTTON_Y = 3,
+    BUTTON_LB = 4,
+    BUTTON_RB = 5,
+    BUTTON_L3 = 9,
+    BUTTON_R3 = 10
+};
+
 #endif // MAIN_H

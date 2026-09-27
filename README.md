@@ -13,7 +13,7 @@
 
 ## Description
 
-This repo is mainly for practicing bare metal embedded C programming on the STM32F411CEU6 board, AKA the Blackpill V3; as well as furthering the development of a DIY drone and flight contorller system.
+This repo is mainly for practicing bare-metal embedded C programming on the STM32F411CEU6 board, AKA the Blackpill V3; as well as furthering the development of a DIY drone and flight contorller system.
 
 I'm just trying to learn as much as I can. Along that note, this repo does not use any CMSIS files or HAL libraries from STM; I figured doing so would help me learn more about how everything works even it's not the most performant.
 
@@ -21,8 +21,7 @@ I'm just trying to learn as much as I can. Along that note, this repo does not u
 * Linking/flash.sh
 * Motor matrix-ing with input and PWM
 * PWM controller math
-* FPU setup
-* DMA NVIC interrupts
+* Only DMA NVIC interrupts
 
 ## Requirements
 * GNU ARM Embedded Toolchain
@@ -60,25 +59,23 @@ I'm just trying to learn as much as I can. Along that note, this repo does not u
 
 ##### Description
 
-This board is an Inertial Measurement Unit (IMU) which incorporates an accelerometer, gyroscope, magnetometer, and temperature sensor all on the same board. Typically, these combination of sensors are used in conjection to calculate the orientation of the board in 3D space, but it can also be used for general tilt sensing, pedometers, tap sensing, etc. This project will use this board to estimate the 3D orientation of the quadcopter in real-time.
+This board is an Inertial Measurement Unit (IMU) which incorporates an accelerometer, gyroscope, magnetometer, and temperature sensor all on the same board. Typically, this combination of sensors are used in conjection to calculate the orientation of the board in 3D space, but it can also be used for general tilt sensing, pedometers, tap sensing, etc. This project will use this board to estimate the 3D orientation of the quadcopter in real-time.
 
 ##### Configuration
 
 ###### Accelerometer
 
-The accelerometer is configured to have an Ouput Data Rate (ODR) of 3.3kHz with low and high pass filters of ODR/9. It's only on $\pm 4g$ sensitivity as I don't expect my applicaiton to be going very fast. Lastly, I set the Block Data Update bit for control register 3 which blocks continuous updates until the MSB and LSB have been read.
-
-Note: are these the best settings? No, but they work fine for right now.
+The accelerometer is configured to have an Ouput Data Rate (ODR) of 952 Hz with an anti-aliasing filter 105 Hz. It's set to $\pm 4g$ sensitivity as I don't expect my applicaiton to be going very fast. This is the fastest the sensor can output data, so hopefully this will be sufficient for my application. I chose to set the anti-aliasing filter to 105 Hz because it's lower than the band of vibration frequencies that the motors will probably produce, and want to filter those out. Lastly, I setup interrupt pin 2 (INT2) to activate when data is ready to be read for this sensor.
 
 ###### Gyroscope
 
-The gyroscope is configured to also have an ODR of 3.3kHz with it's sensitvity at 500 dps (degrees per second). Again, this drone probably isn't moving very fast so high sensitivity would only lead to more noise in the system. This sensor is also configured to have a high and low pass filter.
+The gyroscope is configured to also have an ODR of 952 Hz, but it's sensitvity is 500 dps (degrees per second). Again, this drone probably isn't moving very fast so higher sensitivity would only lead to more noise in the system. This sensor is also configured to have a low pass filter of 100 Hz, and for the same reason of motor vibration frequency cutoff. Lastly, I setup interrupt pin 1 (INT1) to activate when data is ready to be read for this sensor.
 
 Note: are these the best settings? No, but they work fine for right now.
 
 ###### Magnetometer
 
-This sensor was not used at the time of writing, because frankly I couldn't get the master I2C to work on LSM6DSL to talk to the LIS3MDL (magnetometer) sensor via SPI. Hopeuflly this gets figured out eventually!
+This sensor was not used at the time of writing, because, frankly, I couldn't immediately get it to work. I had the math previously for just two sensors, so I'm going to use this method until I want to spend the time debugging.
 
 ---
 
@@ -207,7 +204,7 @@ This IMU module is a bit different than most because it has most of the pins on 
 
 #### SPI3 (Radio Module)
 
-This peripheral uses GPIO pins PA12, PA15, PB3, PB4, and PB5. This bus is used to communicate to the RF module (NRF24L01+); pins PA12 and PA15 are setup to be the CE and CSN pins which are used to turn the radio ON/OFF for use as well as for following the SPI communication protocol. SPI3 is setup to operate at 4MHz, reduced from the 96MHz bus frequency.
+This peripheral uses GPIO pins PA12, PA15, PB3, PB4, and PB5. This bus is used to communicate to the RF module (NRF24L01+); pins PA12 and PA15 are setup to be the CE and CSN pins which are used to turn the radio ON/OFF for use as well as for following the SPI communication protocol. SPI3 is setup to operate at 6MHz, reduced from the 48MHz bus frequency. The interrupt pin is also enabled and used on this, but will only trigger high when data is ready to be read; GPIO pin PB9 will be used for the RX interrupt.
 
 ## Madgwick Filter
 

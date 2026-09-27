@@ -9,8 +9,8 @@
 #include "lsm9ds1.h"
 
 static uint8_t MAX_BUFFER_SIZE = 8;
-uint8_t IMU_XL_FLAG = 0;
-uint8_t IMU_GY_FLAG = 0;
+volatile uint8_t IMU_XL_FLAG = 0;
+volatile uint8_t IMU_GY_FLAG = 0;
 
 /**
  * @brief Internal function to write byte to specific register on the IMU module
@@ -203,13 +203,9 @@ void init_lsm9ds1(void)
 
     // Magnetometer
     write_register_single(M, CTRL_REG1_M, 0xD0);
-
     write_register_single(M, CTRL_REG2_M, 0x20);
-
     write_register_single(M, CTRL_REG3_M, 0x84);
-
     write_register_single(M, CTRL_REG4_M, 0x10);
-
     write_register_single(M, INT_CFG_M, 0x01);
 
     uint8_t whoami_ag = get_who_am_i_ag();
@@ -296,7 +292,7 @@ void get_mag_data(int16_t *xyz)
  *
  * @return None
  */
-uint8_t getImuXLFlag(void)
+uint8_t get_imu_XL_flag(void)
 {
     return IMU_XL_FLAG;
 }
@@ -304,13 +300,26 @@ uint8_t getImuXLFlag(void)
 /**
  * @brief Sets the Accelerometer update flag
  *
- * @param value Value to place in the flag variable
+ * @param None
  *
  * @return None
  */
-void setImuXLFlag(uint8_t value)
+void set_imu_XL_flag(void)
 {
-    IMU_XL_FLAG = value;
+    IMU_XL_FLAG = 1;
+    return;
+}
+
+/**
+ * @brief Resets the Accelerometer update flag
+ *
+ * @param None
+ *
+ * @return None
+ */
+void reset_imu_XL_flag(void)
+{
+    IMU_XL_FLAG = 0;
     return;
 }
 
@@ -321,7 +330,7 @@ void setImuXLFlag(uint8_t value)
  *
  * @return None
  */
-uint8_t getImuGYFlag(void)
+uint8_t get_imu_GY_flag(void)
 {
     return IMU_GY_FLAG;
 }
@@ -333,8 +342,21 @@ uint8_t getImuGYFlag(void)
  *
  * @return None
  */
-void setImuGYFlag(uint8_t value)
+void set_imu_GY_flag(void)
 {
-    IMU_GY_FLAG = value;
+    IMU_GY_FLAG = 1;
+    return;
+}
+
+/**
+ * @brief Resets the Gyroscope update flag
+ *
+ * @param None
+ *
+ * @return None
+ */
+void reset_imu_GY_flag(void)
+{
+    IMU_XL_FLAG = 0;
     return;
 }

@@ -100,9 +100,11 @@ void init_lsm9ds1(void);
 void get_accel_data(int16_t *xyz);
 void get_gyro_data(int16_t *xyz);
 void get_mag_data(int16_t *xyz);
-uint8_t getImuXLFlag(void);
-void setImuXLFlag(uint8_t value);
-uint8_t getImuGYFlag(void);
-void setImuGYFlag(uint8_t value);
+uint8_t get_imu_XL_flag(void);
+void set_imu_XL_flag(void);
+void reset_imu_XL_flag(void);
+uint8_t get_imu_GY_flag(void);
+void set_imu_GY_flag(void);
+void reset_imu_GY_flag(void);
 
 #endif // LSM9DS1_H

@@ -1,6 +1,7 @@
 #include <stdint.h>
 #include "gpio.h"
 #include "lsm9ds1.h"
+#include "nrf24.h"
 #include "exti.h"
 
 extern uint32_t _estack;
@@ -18,6 +19,7 @@ void BusFault_Handler(void);
 
 void EXTI1_IRQHandler(void);
 void EXTI4_IRQHandler(void);
+void EXTI9_5_IRQHandler(void);
 
 int main();
 
@@ -60,7 +62,7 @@ uint32_t vector_tbl[] __attribute__((section(".isr_vector_tbl"))) = {
     (uint32_t)&HardFault_Handler,  // 16: DMA1 Stream5 global interrupt
     (uint32_t)&HardFault_Handler,  // 17: DMA1 Stream6 global interrupt
     (uint32_t)&HardFault_Handler,  // 18: ADC1 global interrupts
-    (uint32_t)&HardFault_Handler,  // 23: EXTI Line[9:5] interrupts
+    (uint32_t)&EXTI9_5_IRQHandler, // 23: EXTI Line[9:5] interrupts
     (uint32_t)&HardFault_Handler,  // 24: TIM1 Break interrupt and TIM9 global interrupt
     (uint32_t)&HardFault_Handler,  // 25: TIM1 Update interrupt and TIM10 global interrupt
     (uint32_t)&HardFault_Handler,  // 26: TIM1 Trigger and Commutation interrupts and TIM11 global interrupt
@@ -103,14 +105,21 @@ uint32_t vector_tbl[] __attribute__((section(".isr_vector_tbl"))) = {
 void EXTI1_IRQHandler(void)
 {
     EXTI->PR |= (1U << 1);
-    setImuGYFlag(1);
+    set_imu_GY_flag();
     return;
 }
 
 void EXTI4_IRQHandler(void)
 {
     EXTI->PR |= (1U << 4);
-    setImuXLFlag(1);
+    set_imu_XL_flag();
+    return;
+}
+
+void EXTI9_5_IRQHandler(void)
+{
+    EXTI->PR |= (1U << 9);
+    set_radio_ready();
     return;
 }
 

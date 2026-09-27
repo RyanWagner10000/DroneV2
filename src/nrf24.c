@@ -9,6 +9,7 @@
 #include "nrf24.h"
 
 static uint8_t MAX_BUFFER_SIZE = 33;
+volatile uint8_t DATA_READY = 0;
 
 uint8_t RX_ADDR_P0_BUFFER[ADDRESS_WIDTH] = {0x01, 0x02, 0x03, 0x04, 0x00};
 uint8_t RX_ADDR_P1_BUFFER[ADDRESS_WIDTH] = {0x06, 0x07, 0x08, 0x09, 0x0A};
@@ -212,7 +213,8 @@ uint8_t init_radio(uint8_t channel)
     uint8_t check_value = 0xFF;
 
     // Settings
-    uint8_t config = 0x00;
+    // uint8_t config = 0x00;
+    uint8_t config = 0x31;
     // uint8_t en_aa = 0x3F;
     uint8_t en_aa = 0x00;
     uint8_t en_rxaddr = 0x03;
@@ -706,6 +708,44 @@ uint8_t data_available(void)
 }
 
 /**
+ * @brief Set radio DATA_READY variable
+ *
+ * @param None
+ *
+ * @return None
+ */
+void set_radio_ready(void)
+{
+    DATA_READY = 1;
+    return;
+}
+
+/**
+ * @brief Reset radio DATA_READY variable
+ *
+ * @param None
+ *
+ * @return None
+ */
+void reset_radio_ready(void)
+{
+    DATA_READY = 0;
+    return;
+}
+
+/**
+ * @brief Get value of radio DATA_READY variable
+ *
+ * @param None
+ *
+ * @return 0 on none available, 1 on available
+ */
+uint8_t get_radio_ready(void)
+{
+    return DATA_READY;
+}
+
+/**
  * @brief Check to see if the Tx FIFO is full
  *
  * @param None
@@ -731,6 +771,11 @@ uint8_t tx_FIFO_full(void)
  */
 void read_radio(RadioPacket *packet, enum PIPE_PACKET_SIZE pps)
 {
+    // Reset IRQ bit
+    uint8_t status = read_register_single(STATUS);
+    status |= (1U << 6);
+    write_register_single(STATUS, status);
+
     // Make sure the array is aligned in memory
     // So that when it gets cast to the struct it lines up
     uint8_t __attribute__((aligned(2))) rx_buffer[pps];
@@ -741,7 +786,6 @@ void read_radio(RadioPacket *packet, enum PIPE_PACKET_SIZE pps)
     // Delay per documentation
     for (uint16_t i = 0; i < 1000; ++i)
     {
-
     }
 
     // Turn radio on

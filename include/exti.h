@@ -28,6 +28,7 @@ typedef struct
     volatile uint32_t PR;    // offset: 0x14
 } EXTI_TypeDef;
 
-void init_imu_exti();
+void init_imu_exti(void);
+void init_radio_exti(void);
 
 #endif // EXTI_H
