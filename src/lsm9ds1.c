@@ -202,11 +202,11 @@ void init_lsm9ds1(void)
     write_register_single(AG, INT2_CTRL, 0x01);
 
     // Magnetometer
-    write_register_single(M, CTRL_REG1_M, 0xD0);
-    write_register_single(M, CTRL_REG2_M, 0x20);
-    write_register_single(M, CTRL_REG3_M, 0x84);
-    write_register_single(M, CTRL_REG4_M, 0x10);
-    write_register_single(M, INT_CFG_M, 0x01);
+    // write_register_single(M, CTRL_REG1_M, 0xD0);
+    // write_register_single(M, CTRL_REG2_M, 0x20);
+    // write_register_single(M, CTRL_REG3_M, 0x84);
+    // write_register_single(M, CTRL_REG4_M, 0x10);
+    // write_register_single(M, INT_CFG_M, 0x01);
 
     uint8_t whoami_ag = get_who_am_i_ag();
     if (whoami_ag != 0x68)
@@ -215,12 +215,12 @@ void init_lsm9ds1(void)
         fail_noise(1,2);
     }
 
-    uint8_t whoami_m = get_who_am_i_m();
-    if (whoami_m != 0x3D)
-    {
-        on_led(RED_LED);
-        fail_noise(1,2);
-    }
+    // uint8_t whoami_m = get_who_am_i_m();
+    // if (whoami_m != 0x3D)
+    // {
+    //     on_led(RED_LED);
+    //     fail_noise(1,2);
+    // }
 
     return;
 }
@@ -357,6 +357,6 @@ void set_imu_GY_flag(void)
  */
 void reset_imu_GY_flag(void)
 {
-    IMU_XL_FLAG = 0;
+    IMU_GY_FLAG = 0;
     return;
 }

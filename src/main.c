@@ -61,6 +61,8 @@ void initModules(void)
     init_lsm9ds1();
     init_radio(0);
 
+    // print_radio_settings();
+
     return;
 }
 
@@ -95,22 +97,27 @@ int main(void)
 
     delay_millisecond(100);
 
-    on_led(GREEN_LED);
-
     // Struct to hold TxRx data from ground-station
-    RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
-    set_rx_mode();
+    // RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
+    // set_rx_mode();
 
     while (1)
     {
-        if (get_radio_ready() == 1)
-        {
-            // Read Rx data, print if available
-            read_radio(&packet, P0_PACKET_SIZE);
+        // if (data_available() == 1)
+        // {
+        //     // usart_write_string("Data Available!\n");
+        // }
+        // if (get_radio_ready() == 1)
+        // {
+        //     usart_write_string("Radio Data Ready\n");
+        //     reset_radio_ready();
 
-            // Print packet for confirmation
-            // printPacket(packet);
-        }
+        //     // // Read Rx data, print if available
+        //     // read_radio(&packet, P0_PACKET_SIZE);
+
+        //     // // Print packet for confirmation
+        //     // print_packet(packet);
+        // }
 
         if (get_imu_XL_flag() == 1)
         {

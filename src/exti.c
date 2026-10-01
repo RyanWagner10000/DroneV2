@@ -38,6 +38,10 @@ void init_imu_exti(void)
     GPIOA->MODER &= ~(3U << 2);
     GPIOA->MODER &= ~(3U << 8);
 
+    // Sey PA1 and PA4 to pull-down
+    GPIOA->PUPDR |= (2U << 2);
+    GPIOA->PUPDR |= (2U << 8);
+
     // Enable clock access to SYSCFG
     RCC->APB2ENR |= (1U << 14);
 

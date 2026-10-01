@@ -104,14 +104,14 @@ uint32_t vector_tbl[] __attribute__((section(".isr_vector_tbl"))) = {
 
 void EXTI1_IRQHandler(void)
 {
-    EXTI->PR |= (1U << 1);
+    EXTI->PR = (1U << 1);
     set_imu_GY_flag();
     return;
 }
 
 void EXTI4_IRQHandler(void)
 {
-    EXTI->PR |= (1U << 4);
+    EXTI->PR = (1U << 4);
     set_imu_XL_flag();
     return;
 }
