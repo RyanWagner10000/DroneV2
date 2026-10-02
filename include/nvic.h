@@ -12,88 +12,63 @@
 
 #include <stdint.h>
 
-#define WWDG_IRQn (0)
-#define PVD_IRQn (1)
-#define TAMP_STAMP_IRQn (2)
-#define RTC_WKUP_IRQn (3)
-#define FLASH_IRQn (4)
-#define RCC_IRQn (5)
-#define EXTI0_IRQn (6)
-#define EXTI1_IRQn (7)
-#define EXTI2_IRQn (8)
-#define EXTI3_IRQn (9)
-#define EXTI4_IRQn (10)
-#define DMA1_Stream0_IRQn (11)
-#define DMA1_Stream1_IRQn (12)
-#define DMA1_Stream2_IRQn (13)
-#define DMA1_Stream3_IRQn (14)
-#define DMA1_Stream4_IRQn (15)
-#define DMA1_Stream5_IRQn (16)
-#define DMA1_Stream6_IRQn (17)
-#define ADC_IRQn (18)
-#define CAN1_TX_IRQn (19)
-#define CAN1_RX0_IRQn (20)
-#define CAN1_RX1_IRQn (21)
-#define CAN1_SCE_IRQn (22)
-#define EXTI9_5_IRQn (23)
-#define TIM1_BRK_TIM9_IRQn (24)
-#define TIM1_UP_TIM10_IRQn (25)
-#define TIM1_TRG_COM_TIM11_IRQn (26)
-#define TIM1_CC_IRQn (27)
-#define TIM2_IRQn (28)
-#define TIM3_IRQn (29)
-#define TIM4_IRQn (30)
-#define I2C1_EV_IRQn (31)
-#define I2C1_ER_IRQn (32)
-#define I2C2_EV_IRQn (33)
-#define I2C2_ER_IRQn (34)
-#define SPI1_IRQn (35)
-#define SPI2_IRQn (36)
-#define USART1_IRQn (37)
-#define USART2_IRQn (38)
-#define USART3_IRQn (39)
-#define EXTI15_10_IRQn (40)
-#define RTC_Alarm_IRQn (41)
-#define OTG_FS_WKUP_IRQn (42)
-#define TIM8_BRK_TIM12_IRQn (43)
-#define TIM8_UP_TIM13_IRQn (44)
-#define TIM8_TRG_COM_TIM14_IRQn (45)
-#define TIM8_CC_IRQn (46)
-#define DMA1_Stream7_IRQn (47)
-#define FSMC_IRQn (48)
-#define SDIO_IRQn (49)
-#define TIM5_IRQn (50)
-#define SPI3_IRQn (51)
-#define UART4_IRQn (52)
-#define UART5_IRQn (53)
-#define TIM6_DAC_IRQn (54)
-#define TIM7_IRQn (55)
-#define DMA2_Stream0_IRQn (56)
-#define DMA2_Stream1_IRQn (57)
-#define DMA2_Stream2_IRQn (58)
-#define DMA2_Stream3_IRQn (59)
-#define DMA2_Stream4_IRQn (60)
-#define ETH_IRQn (61)
-#define ETH_WKUP_IRQn (62)
-#define CAN2_TX_IRQn (63)
-#define CAN2_RX0_IRQn (64)
-#define CAN2_RX1_IRQn (65)
-#define CAN2_SCE_IRQn (66)
-#define OTG_FS_IRQn (67)
-#define DMA2_Stream5_IRQn (68)
-#define DMA2_Stream6_IRQn (69)
-#define DMA2_Stream7_IRQn (70)
-#define USART6_IRQn (71)
-#define I2C3_EV_IRQn (72)
-#define I2C3_ER_IRQn (73)
-#define OTG_HS_EP1_OUT_IRQn (74)
-#define OTG_HS_EP1_IN_IRQn (75)
-#define OTG_HS_WKUP_IRQn (76)
-#define OTG_HS_IRQn (77)
-#define DCMI_IRQn (78)
-#define CRYP_IRQn (79)
-#define HASH_RNG_IRQn (80)
-#define FPU_IRQn (81)
+#define WWDG_IRQn (0)                // offset: 0x40
+#define PVD_IRQn (1)                 // offset: 0x44
+#define TAMP_STAMP_IRQn (2)          // offset: 0x48
+#define RTC_WKUP_IRQn (3)            // offset: 0x4C
+#define FLASH_IRQn (4)               // offset: 0x50
+#define RCC_IRQn (5)                 // offset: 0x54
+#define EXTI0_IRQn (6)               // offset: 0x58
+#define EXTI1_IRQn (7)               // offset: 0x5C
+#define EXTI2_IRQn (8)               // offset: 0x60
+#define EXTI3_IRQn (9)               // offset: 0x64
+#define EXTI4_IRQn (10)              // offset: 0x68
+#define DMA1_Stream0_IRQn (11)       // offset: 0x6C
+#define DMA1_Stream1_IRQn (12)       // offset: 0x70
+#define DMA1_Stream2_IRQn (13)       // offset: 0x74
+#define DMA1_Stream3_IRQn (14)       // offset: 0x78
+#define DMA1_Stream4_IRQn (15)       // offset: 0x7C
+#define DMA1_Stream5_IRQn (16)       // offset: 0x80
+#define DMA1_Stream6_IRQn (17)       // offset: 0x84
+#define ADC_IRQn (18)                // offset: 0x88
+#define EXTI9_5_IRQn (23)            // offset: 0x9C
+#define TIM1_BRK_TIM9_IRQn (24)      // offset: 0xA0
+#define TIM1_UP_TIM10_IRQn (25)      // offset: 0xA4
+#define TIM1_TRG_COM_TIM11_IRQn (26) // offset: 0xA8
+#define TIM1_CC_IRQn (27)            // offset: 0xAC
+#define TIM2_IRQn (28)               // offset: 0xB0
+#define TIM3_IRQn (29)               // offset: 0xB4
+#define TIM4_IRQn (30)               // offset: 0xB8
+#define I2C1_EV_IRQn (31)            // offset: 0xBC
+#define I2C1_ER_IRQn (32)            // offset: 0xC0
+#define I2C2_EV_IRQn (33)            // offset: 0xC4
+#define I2C2_ER_IRQn (34)            // offset: 0xC8
+#define SPI1_IRQn (35)               // offset: 0xCC
+#define SPI2_IRQn (36)               // offset: 0xD0
+#define USART1_IRQn (37)             // offset: 0xD4
+#define USART2_IRQn (38)             // offset: 0xD8
+#define EXTI15_10_IRQn (40)          // offset: 0xE0
+#define RTC_Alarm_IRQn (41)          // offset: 0xE4
+#define OTG_FS_WKUP_IRQn (42)        // offset: 0xE8
+#define DMA1_Stream7_IRQn (47)       // offset: 0xFC
+#define SDIO_IRQn (49)               // offset: 0x104
+#define TIM5_IRQn (50)               // offset: 0x108
+#define SPI3_IRQn (51)               // offset: 0x10C
+#define DMA2_Stream0_IRQn (56)       // offset: 0x120
+#define DMA2_Stream1_IRQn (57)       // offset: 0x124
+#define DMA2_Stream2_IRQn (58)       // offset: 0x128
+#define DMA2_Stream3_IRQn (59)       // offset: 0x12C
+#define DMA2_Stream4_IRQn (60)       // offset: 0x130
+#define OTG_FS_IRQn (67)             // offset: 0x14C
+#define DMA2_Stream5_IRQn (68)       // offset: 0x150
+#define DMA2_Stream6_IRQn (69)       // offset: 0x154
+#define DMA2_Stream7_IRQn (70)       // offset: 0x158
+#define USART6_IRQn (71)             // offset: 0x15C
+#define I2C3_EV_IRQn (72)            // offset: 0x160
+#define I2C3_ER_IRQn (73)            // offset: 0x164
+#define FPU_IRQn (81)                // offset: 0x184
+#define SPI4_IRQn (84)               // offset: 0x190
+#define SPI5_IRQn (85)               // offset: 0x194
 
 // Define the pointer to NVIC at its base address
 #define NVIC_BASE (0xE000E100)

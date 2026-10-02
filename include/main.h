@@ -14,6 +14,7 @@
 #include "rcc.h"
 #include "gpio.h"
 #include "timer2.h"
+#include "timer3.h"
 #include "timer10.h"
 #include "lsm9ds1.h"
 #include "usart.h"

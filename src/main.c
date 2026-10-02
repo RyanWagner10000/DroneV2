@@ -38,10 +38,13 @@ void initPeripherals(void)
     usart_write_string("USART2 Working!\n");
 
     init_timer2();
+    init_timer3();
     init_timer10();
+    usart_write_string("Timers Setup!\n");
 
     init_spi1();
     init_spi3();
+    usart_write_string("SPI's Setup!\n");
 
     // Upon success/fail, play noise
     // Implement logic for pass/fail
@@ -101,6 +104,9 @@ int main(void)
     // RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
     // set_rx_mode();
 
+    restart_one_sec_timer();
+    uint32_t counter = 0;
+
     while (1)
     {
         // if (data_available() == 1)
@@ -119,7 +125,7 @@ int main(void)
         //     // print_packet(packet);
         // }
 
-        if (get_imu_XL_flag() == 1)
+        if (get_imu_XL_flag() == 1U)
         {
             reset_imu_XL_flag();
             get_accel_data(accel_xyz);
@@ -127,12 +133,27 @@ int main(void)
             // print_xyz(accel_xyz);
         }
 
-        if (get_imu_GY_flag() == 1)
+        if (get_imu_GY_flag() == 1U)
         {
             reset_imu_GY_flag();
             get_gyro_data(gyro_xyz);
+            counter++;
 
             // print_xyz(gyro_xyz);
+        }
+
+        if (get_one_sec_flag() == 1U)
+        {
+            if (counter > 952)
+            {
+                usart_write_number((int32_t)counter);
+                usart_write_char('\n');
+            }
+            counter = 0;
+
+            reset_one_sec_flag();
+
+            toggle_led(GREEN_LED);
         }
     }
 
