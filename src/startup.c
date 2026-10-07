@@ -136,21 +136,31 @@ uint32_t vector_tbl[] __attribute__((section(".isr_vector_tbl"))) = {
 void EXTI1_IRQHandler(void)
 {
     EXTI->PR = (1U << 1);
-    set_imu_GY_flag();
+    if (GPIOA->IDR & (1U << 1))
+    {
+        set_imu_GY_flag();
+    }
+    
     return;
 }
 
 void EXTI4_IRQHandler(void)
 {
     EXTI->PR = (1U << 4);
-    set_imu_XL_flag();
+    if (GPIOA->IDR & (1U << 4))
+    {
+        set_imu_XL_flag();
+    }
     return;
 }
 
 void EXTI9_5_IRQHandler(void)
 {
     EXTI->PR |= (1U << 9);
-    set_radio_ready();
+    if (GPIOB->IDR & (1U << 9))
+    {
+        set_radio_ready();
+    }
     return;
 }
 

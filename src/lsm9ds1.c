@@ -212,7 +212,7 @@ void init_lsm9ds1(void)
     if (whoami_ag != 0x68)
     {
         on_led(RED_LED);
-        fail_noise(1,2);
+        fail_noise(1, 2);
     }
 
     // uint8_t whoami_m = get_who_am_i_m();

@@ -102,10 +102,7 @@ int main(void)
 
     // Struct to hold TxRx data from ground-station
     // RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
-    // set_rx_mode();
-
-    restart_one_sec_timer();
-    uint32_t counter = 0;
+    set_rx_mode();
 
     while (1)
     {
@@ -137,24 +134,10 @@ int main(void)
         {
             reset_imu_GY_flag();
             get_gyro_data(gyro_xyz);
-            counter++;
 
             // print_xyz(gyro_xyz);
         }
 
-        if (get_one_sec_flag() == 1U)
-        {
-            if (counter > 952)
-            {
-                usart_write_number((int32_t)counter);
-                usart_write_char('\n');
-            }
-            counter = 0;
-
-            reset_one_sec_flag();
-
-            toggle_led(GREEN_LED);
-        }
     }
 
     return 0;
