@@ -36,9 +36,9 @@ void init_spi3(void)
     GPIOA->MODER &= ~(3U << 24);  // Clear 0b00
     GPIOA->MODER &= ~(3U << 30);  // Clear 0b00
     // Then set
+    GPIOB->MODER |= (2U << 6); // AF mode 0b10
+    GPIOB->MODER |= (2U << 8); // AF mode 0b10
     GPIOB->MODER |= (2U << 10); // AF mode 0b10
-    GPIOB->MODER |= (2U << 12); // AF mode 0b10
-    GPIOB->MODER |= (2U << 14); // AF mode 0b10
     GPIOA->MODER |= (1U << 24);  // Output mode 0b01
     GPIOA->MODER |= (1U << 30);  // Output mode 0b01
 
@@ -53,7 +53,7 @@ void init_spi3(void)
     GPIOB->AFRL |= (6U << 20); // AFRL5 -> 0b0110 = AF6
 
     // Initialize CS Pin to high
-    GPIOA->ODR |= (1U << 12);
+    // GPIOA->ODR |= (1U << 12);
     GPIOA->ODR |= (1U << 15);
 
     // Set output type to push-pull
@@ -74,12 +74,12 @@ void init_spi3(void)
     // Clear config to init
     SPI3->CR1 = 0x0000;
 
-    // Set clock to fPCLK/16 = 48MHz/8 = 6MHz
+    // Set clock to fPCLK/8 = 48MHz/8 = 6MHz
     SPI3->CR1 |= (2U << 3);
 
     // Set CPHA and CPOL to 1 (Mode 3) to determine behavior
-    SPI3->CR1 |= (3U << 0);
-    // SPI3->CR1 &= ~(3U << 0);
+    // SPI3->CR1 |= (3U << 0);
+    SPI3->CR1 &= ~(3U << 0);
 
     // Set MSB first
     SPI3->CR1 &= ~(1U << 7);
@@ -144,7 +144,7 @@ void transfer_spi3(uint8_t *tx_buffer, uint8_t *rx_buffer, uint8_t length)
 void enable_ce(void)
 {
     // Turn on SPI to device
-    GPIOA->ODR &= ~(1U << 12);
+    GPIOA->ODR |= (1U << 12);
 
     // Small delay
     for (volatile uint32_t i = 0; i < 10; i++)
@@ -183,7 +183,7 @@ void disable_ce(void)
 {
 
     // Turn off SPI to device
-    GPIOA->ODR |= (1U << 12);
+    GPIOA->ODR &= ~(1U << 12);
 
     // Small delay
     for (volatile uint32_t i = 0; i < 10; i++)

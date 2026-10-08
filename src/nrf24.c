@@ -231,7 +231,9 @@ uint8_t init_radio(uint8_t channel)
     // Check value
     check_value = read_register_single(CONFIG);
     if (check_value != config)
+    {
         success = 0;
+    }
     check_value = 0xFF;
 
     // Set Auto-Acknowledge register
@@ -239,7 +241,9 @@ uint8_t init_radio(uint8_t channel)
     // Check value
     check_value = read_register_single(EN_AA);
     if (check_value != en_aa)
+    {
         success = 0;
+    }
     check_value = 0xFF;
 
     // Set Rx Address register
@@ -247,7 +251,9 @@ uint8_t init_radio(uint8_t channel)
     // Check value
     check_value = read_register_single(EN_RXADDR);
     if (check_value != en_rxaddr)
+    {
         success = 0;
+    }
     check_value = 0xFF;
 
     // Set Address Widths register
@@ -255,7 +261,9 @@ uint8_t init_radio(uint8_t channel)
     // Check value
     check_value = read_register_single(SETUP_AW);
     if (check_value != setup_aw)
+    {
         success = 0;
+    }
     check_value = 0xFF;
 
     // Set Auto Retransmission regis
@@ -263,7 +271,9 @@ uint8_t init_radio(uint8_t channel)
     // Check value
     check_value = read_register_single(SETUP_RETR);
     if (check_value != setup_retr)
+    {
         success = 0;
+    }
     check_value = 0xFF;
 
     // Set RF Channel register
@@ -271,7 +281,9 @@ uint8_t init_radio(uint8_t channel)
     // Check value
     check_value = read_register_single(RF_CH);
     if (check_value != rf_ch)
+    {
         success = 0;
+    }
     check_value = 0xFF;
 
     // Set RF Setup register
@@ -279,15 +291,20 @@ uint8_t init_radio(uint8_t channel)
     // Check value
     check_value = read_register_single(RF_SETUP);
     if (check_value != rf_setup)
+    {
         success = 0;
-    check_value = 0xFF;
+    }
+    else
+        check_value = 0xFF;
 
     // Set Payload size for Pipe 0
     write_register_single(RX_PW_P0, P0_PACKET_SIZE);
     // Check value
     check_value = read_register_single(RX_PW_P0);
     if (check_value != P0_PACKET_SIZE)
+    {
         success = 0;
+    }
     check_value = 0xFF;
 
     // Set Rx Address Pipe 0 register

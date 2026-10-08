@@ -62,9 +62,17 @@ void initModules(void)
 {
     // Init IMU module
     init_lsm9ds1();
-    init_radio(0);
+    uint8_t pass = init_radio(0);
+    if (pass)
+    {
+        usart_write_string("Radio Setup!");
+    }
+    else
+    {
+        usart_write_string("Radio NOT Setup!");
+    }
 
-    // print_radio_settings();
+    print_radio_settings();
 
     return;
 }
@@ -101,26 +109,26 @@ int main(void)
     delay_millisecond(100);
 
     // Struct to hold TxRx data from ground-station
-    // RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
+    RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
     set_rx_mode();
 
     while (1)
     {
-        // if (data_available() == 1)
-        // {
-        //     // usart_write_string("Data Available!\n");
-        // }
-        // if (get_radio_ready() == 1)
-        // {
-        //     usart_write_string("Radio Data Ready\n");
-        //     reset_radio_ready();
+        if (data_available() == 1)
+        {
+            usart_write_string("Data Available!\n");
+        }
+        if (get_radio_ready() == 1)
+        {
+            usart_write_string("Radio Data Ready\n");
+            reset_radio_ready();
 
-        //     // // Read Rx data, print if available
-        //     // read_radio(&packet, P0_PACKET_SIZE);
+            // Read Rx data, print if available
+            read_radio(&packet, P0_PACKET_SIZE);
 
-        //     // // Print packet for confirmation
-        //     // print_packet(packet);
-        // }
+            // Print packet for confirmation
+            print_packet(packet);
+        }
 
         if (get_imu_XL_flag() == 1U)
         {
