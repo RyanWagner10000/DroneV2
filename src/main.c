@@ -32,16 +32,19 @@ void initPeripherals(void)
     off_led(BLUE_LED);
 
     init_imu_exti();
+    init_radio_exti();
 
     init_usart();
     usart_write_string("USART2 Working!\n");
 
-    init_imu_exti();
-
     init_timer2();
+    init_timer3();
     init_timer10();
+    usart_write_string("Timers Setup!\n");
 
     init_spi1();
+    init_spi3();
+    usart_write_string("SPI's Setup!\n");
 
     // Upon success/fail, play noise
     // Implement logic for pass/fail
@@ -59,23 +62,34 @@ void initModules(void)
 {
     // Init IMU module
     init_lsm9ds1();
+    uint8_t pass = init_radio(0);
+    if (pass)
+    {
+        usart_write_string("Radio Setup!");
+    }
+    else
+    {
+        usart_write_string("Radio NOT Setup!");
+    }
+
+    print_radio_settings();
 
     return;
 }
 
-static void print_xyz(int16_t *xyz)
-{
-    usart_write_string("[");
-    usart_write_number((int32_t)xyz[0]);
-    usart_write_char(' ');
-    usart_write_number((int32_t)xyz[1]);
-    usart_write_char(' ');
-    usart_write_number((int32_t)xyz[2]);
-    usart_write_char(']');
-    usart_write_char('\n');
+// static void print_xyz(int16_t *xyz)
+// {
+//     usart_write_string("[");
+//     usart_write_number((int32_t)xyz[0]);
+//     usart_write_char(' ');
+//     usart_write_number((int32_t)xyz[1]);
+//     usart_write_char(' ');
+//     usart_write_number((int32_t)xyz[2]);
+//     usart_write_char(']');
+//     usart_write_char('\n');
 
-    return;
-}
+//     return;
+// }
 
 /**
  * @brief Main forever while-loop
@@ -94,25 +108,48 @@ int main(void)
 
     delay_millisecond(100);
 
-    on_led(GREEN_LED);
+    // Struct to hold TxRx data from ground-station
+    RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
+    set_rx_mode();
+    read_radio(&packet, P0_PACKET_SIZE);
 
     while (1)
     {
-        if (getImuXLFlag() == 1)
+        if (get_radio_ready() == 1)
         {
-            setImuXLFlag(0);
+            // usart_write_string("Radio Data Ready\n");
+            reset_radio_ready();
+
+            // Read Rx data, print if available
+            read_radio(&packet, P0_PACKET_SIZE);
+
+            // Print packet for confirmation
+            // print_packet(packet);
+        }
+
+        if (get_imu_XL_flag() == 1U)
+        {
+            reset_imu_XL_flag();
             get_accel_data(accel_xyz);
 
             // print_xyz(accel_xyz);
         }
 
-        if (getImuGYFlag() == 1)
+        if (get_imu_GY_flag() == 1U)
         {
-            setImuGYFlag(0);
+            reset_imu_GY_flag();
             get_gyro_data(gyro_xyz);
 
             // print_xyz(gyro_xyz);
         }
+
+        if (get_one_sec_flag())
+        {
+            reset_one_sec_flag();
+
+            toggle_led(GREEN_LED);
+        }
+
     }
 
     return 0;

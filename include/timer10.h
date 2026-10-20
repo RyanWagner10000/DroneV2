@@ -32,12 +32,13 @@ typedef struct
     volatile uint32_t ARR;       // offset: 0x2C
     volatile uint32_t RESERVED2; // offset: 0x30
     volatile uint32_t CCR1;      // offset: 0x34
-    volatile uint32_t CCR2;      // offset: 0x38
-    volatile uint32_t RESERVED3; // offset: 0x3C
-    volatile uint32_t RESERVED4; // offset: 0x40
-    volatile uint32_t RESERVED5; // offset: 0x44
-    volatile uint32_t RESERVED6; // offset: 0x48
-    volatile uint32_t RESERVED7; // offset: 0x4C
+    volatile uint32_t RESERVED3; // offset: 0x38
+    volatile uint32_t RESERVED4; // offset: 0x3C
+    volatile uint32_t RESERVED5; // offset: 0x40
+    volatile uint32_t RESERVED6; // offset: 0x44
+    volatile uint32_t RESERVED7; // offset: 0x48
+    volatile uint32_t RESERVED8; // offset: 0x4C
+    volatile uint32_t OR;        // offset: 0x50
 } timer10_TypeDef;
 
 void delay_millisecond(uint32_t num_milliseconds);
