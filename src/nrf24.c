@@ -213,8 +213,7 @@ uint8_t init_radio(uint8_t channel)
     uint8_t check_value = 0xFF;
 
     // Settings
-    // uint8_t config = 0x00;
-    uint8_t config = 0x31;
+    uint8_t config = 0x30;
     // uint8_t en_aa = 0x3F;
     uint8_t en_aa = 0x00;
     uint8_t en_rxaddr = 0x03;
@@ -788,11 +787,6 @@ uint8_t tx_FIFO_full(void)
  */
 void read_radio(RadioPacket *packet, enum PIPE_PACKET_SIZE pps)
 {
-    // Reset IRQ bit
-    uint8_t status = read_register_single(STATUS);
-    status |= (1U << 6);
-    write_register_single(STATUS, status);
-
     // Make sure the array is aligned in memory
     // So that when it gets cast to the struct it lines up
     uint8_t __attribute__((aligned(2))) rx_buffer[pps];
@@ -812,6 +806,11 @@ void read_radio(RadioPacket *packet, enum PIPE_PACKET_SIZE pps)
 
     // Cast data array into struct
     *packet = *(RadioPacket *)rx_buffer;
+
+    // Reset IRQ bit
+    uint8_t status = read_register_single(STATUS);
+    status |= (1U << 6);
+    write_register_single(STATUS, status);
 
     return;
 }

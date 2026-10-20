@@ -38,7 +38,7 @@ void init_imu_exti(void)
     GPIOA->MODER &= ~(3U << 2);
     GPIOA->MODER &= ~(3U << 8);
 
-    // Sey PA1 and PA4 to pull-down
+    // Set PA1 and PA4 to pull-down
     GPIOA->PUPDR |= (2U << 2);
     GPIOA->PUPDR |= (2U << 8);
 
@@ -85,7 +85,7 @@ void init_radio_exti(void)
     // Enable clock access to GPIOB
     RCC->AHB1ENR |= (1U << 1);
 
-    // Set PB9 input and Pull-Up resistor
+    // Set PB9 input and pull-up resistor
     GPIOB->MODER &= ~(3U << 18);
     GPIOB->PUPDR |= (1U << 18);
     GPIOB->PUPDR &= ~(1U << 19);

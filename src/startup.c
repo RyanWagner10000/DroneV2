@@ -156,9 +156,8 @@ void EXTI4_IRQHandler(void)
 
 void EXTI9_5_IRQHandler(void)
 {
-    EXTI->PR |= (1U << 9);
-    usart_write_string("EXTI9\n");
-    if (GPIOB->IDR & (1U << 9))
+    EXTI->PR = (1U << 9);
+    if (~GPIOB->IDR & (1U << 9))
     {
         set_radio_ready();
     }

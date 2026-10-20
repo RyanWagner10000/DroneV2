@@ -111,23 +111,20 @@ int main(void)
     // Struct to hold TxRx data from ground-station
     RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
     set_rx_mode();
+    read_radio(&packet, P0_PACKET_SIZE);
 
     while (1)
     {
-        if (data_available() == 1)
-        {
-            usart_write_string("Data Available!\n");
-        }
         if (get_radio_ready() == 1)
         {
-            usart_write_string("Radio Data Ready\n");
+            // usart_write_string("Radio Data Ready\n");
             reset_radio_ready();
 
             // Read Rx data, print if available
             read_radio(&packet, P0_PACKET_SIZE);
 
             // Print packet for confirmation
-            print_packet(packet);
+            // print_packet(packet);
         }
 
         if (get_imu_XL_flag() == 1U)
@@ -144,6 +141,13 @@ int main(void)
             get_gyro_data(gyro_xyz);
 
             // print_xyz(gyro_xyz);
+        }
+
+        if (get_one_sec_flag())
+        {
+            reset_one_sec_flag();
+
+            toggle_led(GREEN_LED);
         }
 
     }
