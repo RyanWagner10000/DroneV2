@@ -46,6 +46,9 @@ void initPeripherals(void)
     init_spi3();
     usart_write_string("SPI's Setup!\n");
 
+    init_i2c1();
+    usart_write_string("I2C Setup!\n");
+
     // Upon success/fail, play noise
     // Implement logic for pass/fail
     success_noise();
@@ -62,6 +65,7 @@ void initModules(void)
 {
     // Init IMU module
     init_lsm9ds1();
+
     uint8_t pass = init_radio(0);
     if (pass)
     {
@@ -73,6 +77,8 @@ void initModules(void)
     }
 
     print_radio_settings();
+
+    init_bme680();
 
     return;
 }
@@ -115,7 +121,7 @@ int main(void)
 
     while (1)
     {
-        if (get_radio_ready() == 1)
+        if (get_radio_ready() == 1U)
         {
             // usart_write_string("Radio Data Ready\n");
             reset_radio_ready();
