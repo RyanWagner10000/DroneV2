@@ -12,4 +12,6 @@
 #include <stdint.h>
 #include "i2c1.h"
 
+void init_bme680(void);
+
 #endif // BME680_H

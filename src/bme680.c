@@ -8,7 +8,7 @@
 
 #include "bme680.h"
 
-void init_bme680()
+void init_bme680(void)
 {
     return;
 }
