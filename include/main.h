@@ -20,7 +20,7 @@
 #include "usart.h"
 #include "exti.h"
 #include "nrf24.h"
-#include "bme680.h"
+#include "bmp388.h"
 
 enum CONTROLLER_BUTTON
 {

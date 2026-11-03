@@ -32,5 +32,7 @@ typedef struct
 } I2C1_TypeDef;
 
 void init_i2c1(void);
+uint8_t read_i2c1(uint8_t slave_address, uint8_t mem_address, uint8_t *rx_buffer, uint8_t length);
+void write_i2c1(uint8_t slave_address, uint8_t mem_address, uint8_t *tx_buffer, uint8_t length);
 
 #endif // I2C1_H

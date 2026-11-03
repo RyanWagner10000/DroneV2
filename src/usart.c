@@ -54,7 +54,7 @@ void init_usart(void)
  *
  * @return Size of input character array
  */
-uint32_t get_string_length(const char *s)
+static uint32_t get_string_length(const char *s)
 {
     uint32_t length = 0;
 
@@ -218,7 +218,7 @@ void str_concat(char *str1, char *str2, char *concat)
  *
  * @return None
  */
-void reverse(char *str, uint32_t len)
+static void reverse(char *str, uint32_t len)
 {
     uint32_t i = 0, j = len - 1;
     while (i < j)
@@ -291,8 +291,6 @@ uint32_t int_to_str(int32_t n, char *buffer)
  */
 void float_to_str(float n, char *buffer, uint32_t afterpoint)
 {
-    afterpoint++;
-
     // Handle negative numbers
     uint32_t index = 0;
     if (n < 0.0f)

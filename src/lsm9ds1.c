@@ -63,7 +63,7 @@ static void write_register_single(Sensor sensor, uint8_t address, uint8_t value)
 static uint8_t read_register_single(Sensor sensor, uint8_t address)
 {
     // Format message
-    uint8_t tx_buffer[2] = {address | READ_OPERATION, 0x00};
+    uint8_t tx_buffer[2] = {address | READ_OPERATION_LSM9DS1, 0x00};
     uint8_t rx_buffer[2] = {0, 0};
 
     if (sensor == AG)
@@ -110,10 +110,10 @@ static void read_register_multi(Sensor sensor, uint8_t address, uint8_t *values,
     length = length <= MAX_BUFFER_SIZE ? length : MAX_BUFFER_SIZE;
 
     // Copy data into Tx buffer
-    tx_buffer[0] = address | READ_OPERATION;
+    tx_buffer[0] = address | READ_OPERATION_LSM9DS1;
     if (sensor == M)
     {
-        tx_buffer[0] = address | READ_OPERATION | (1U << 6);
+        tx_buffer[0] = address | READ_OPERATION_LSM9DS1 | (1U << 6);
     }
     for (uint8_t i = 1; i < length + 1; i++)
     {
@@ -162,7 +162,7 @@ static void read_register_multi(Sensor sensor, uint8_t address, uint8_t *values,
 uint8_t get_who_am_i_ag(void)
 {
     // Read WHO_AM_I (should be 0x68)
-    return read_register_single(AG, WHO_AM_I);
+    return read_register_single(AG, WHO_AM_I_LSM9DS1);
 }
 
 /**
@@ -175,7 +175,7 @@ uint8_t get_who_am_i_ag(void)
 uint8_t get_who_am_i_m(void)
 {
     // Read WHO_AM_I (should be 0x3D)
-    return read_register_single(M, WHO_AM_I_M);
+    return read_register_single(M, WHO_AM_I_M_LSM9DS1);
 }
 
 /**
@@ -188,18 +188,18 @@ uint8_t get_who_am_i_m(void)
 void init_lsm9ds1(void)
 {
     // Gyroscope
-    write_register_single(AG, CTRL_REG2_G, 0x02);
-    write_register_single(AG, CTRL_REG1_G, 0xCB);
+    write_register_single(AG, CTRL_REG2_G_LSM9DS1, 0x02);
+    write_register_single(AG, CTRL_REG1_G_LSM9DS1, 0xCB);
     // INT1 setup
     GPIOA->PUPDR |= (2U << 2); // PA1
-    write_register_single(AG, INT1_CTRL, 0x02);
+    write_register_single(AG, INT1_CTRL_LSM9DS1, 0x02);
 
     // Accelerometer
     // 952 Hz ODR; +/- 4g; 211 Hz BW AA filter
-    write_register_single(AG, CTRL_REG6_XL, 0xD5);
+    write_register_single(AG, CTRL_REG6_XL_LSM9DS1, 0xD5);
     // INT2 setup
     GPIOA->PUPDR |= (2U << 8); // PA4
-    write_register_single(AG, INT2_CTRL, 0x01);
+    write_register_single(AG, INT2_CTRL_LSM9DS1, 0x01);
 
     // Magnetometer
     // write_register_single(M, CTRL_REG1_M, 0xD0);
@@ -235,7 +235,7 @@ void init_lsm9ds1(void)
 void get_accel_data(int16_t *xyz)
 {
     uint8_t data_buffer[] = {0, 0, 0, 0, 0, 0};
-    read_register_multi(AG, OUT_X_L_XL, data_buffer, 6);
+    read_register_multi(AG, OUT_X_L_XL_LSM9DS1, data_buffer, 6);
 
     // Combine high and low bytes to form data
     xyz[0] = ((data_buffer[1] << 8) | data_buffer[0]);
@@ -255,7 +255,7 @@ void get_accel_data(int16_t *xyz)
 void get_gyro_data(int16_t *xyz)
 {
     uint8_t data_buffer[] = {0, 0, 0, 0, 0, 0};
-    read_register_multi(AG, OUT_X_L_G, data_buffer, 6);
+    read_register_multi(AG, OUT_X_L_G_LSM9DS1, data_buffer, 6);
 
     // Combine high and low bytes to form data
     xyz[0] = ((data_buffer[1] << 8) | data_buffer[0]);
@@ -275,7 +275,7 @@ void get_gyro_data(int16_t *xyz)
 void get_mag_data(int16_t *xyz)
 {
     uint8_t data_buffer[] = {0, 0, 0, 0, 0, 0};
-    read_register_multi(M, OUT_X_L_M, data_buffer, 6);
+    read_register_multi(M, OUT_X_L_M_LSM9DS1, data_buffer, 6);
 
     // Combine high and low bytes to form data
     xyz[0] = ((data_buffer[1] << 8) | data_buffer[0]);

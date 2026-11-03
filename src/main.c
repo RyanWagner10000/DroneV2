@@ -19,7 +19,7 @@ int16_t gyro_xyz[3] = {0, 0, 0};
  *
  * @return None
  */
-void initPeripherals(void)
+void init_peripherals(void)
 {
     init_rcc();
     init_fpu();
@@ -35,6 +35,7 @@ void initPeripherals(void)
     init_radio_exti();
 
     init_usart();
+    usart_write_string("\n\n--------------------------------------------------\n");
     usart_write_string("USART2 Working!\n");
 
     init_timer2();
@@ -43,11 +44,12 @@ void initPeripherals(void)
     usart_write_string("Timers Setup!\n");
 
     init_spi1();
+    init_spi2();
     init_spi3();
     usart_write_string("SPI's Setup!\n");
 
-    init_i2c1();
-    usart_write_string("I2C Setup!\n");
+    // init_i2c1();
+    // usart_write_string("I2C Setup!\n");
 
     // Upon success/fail, play noise
     // Implement logic for pass/fail
@@ -61,7 +63,7 @@ void initPeripherals(void)
  *
  * @return None
  */
-void initModules(void)
+void init_modules(void)
 {
     // Init IMU module
     init_lsm9ds1();
@@ -69,16 +71,30 @@ void initModules(void)
     uint8_t pass = init_radio(0);
     if (pass)
     {
-        usart_write_string("Radio Setup!");
+        usart_write_string("Radio Setup!\n");
+        print_radio_settings();
     }
     else
     {
-        usart_write_string("Radio NOT Setup!");
+        usart_write_string("!!!!! !!!!! !!!!!  ");
+        usart_write_string("Radio NOT Setup");
+        usart_write_string("  !!!!! !!!!! !!!!!\n");
     }
 
-    print_radio_settings();
-
-    init_bme680();
+    pass = init_bmp388();
+    if (pass)
+    {
+        delay_millisecond(100);
+        init_bmp_exti();
+        reset_bmp_ready();
+        usart_write_string("Altimeter Setup!\n");
+    }
+    else
+    {
+        usart_write_string("!!!!! !!!!! !!!!!  ");
+        usart_write_string("Altimeter NOT Setup");
+        usart_write_string("  !!!!! !!!!! !!!!!\n");
+    }
 
     return;
 }
@@ -106,11 +122,11 @@ void initModules(void)
  */
 int main(void)
 {
-    initPeripherals();
+    init_peripherals();
 
     delay_millisecond(100);
 
-    initModules();
+    init_modules();
 
     delay_millisecond(100);
 
@@ -118,6 +134,8 @@ int main(void)
     RadioPacket packet = {0, 0, 0, 0, 0, 0, 255, 0};
     set_rx_mode();
     read_radio(&packet, P0_PACKET_SIZE);
+
+    float temperature = 0.0;
 
     while (1)
     {
@@ -149,13 +167,26 @@ int main(void)
             // print_xyz(gyro_xyz);
         }
 
+        if (get_bmp_ready() == 1U)
+        {
+            reset_bmp_ready();
+
+            temperature = get_temperature_data();
+
+            char temp_str[MAX_FLOAT_STRING];
+            float_to_str(temperature, temp_str, 3);
+            char temp_msg[MAX_STRING_CONCAT];
+            str_concat("Temp = ", temp_str, temp_msg);
+            usart_write_string(temp_msg);
+            usart_write_char('\n');
+        }
+
         if (get_one_sec_flag())
         {
             reset_one_sec_flag();
 
             toggle_led(GREEN_LED);
         }
-
     }
 
     return 0;

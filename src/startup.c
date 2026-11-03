@@ -2,6 +2,7 @@
 #include "gpio.h"
 #include "lsm9ds1.h"
 #include "nrf24.h"
+#include "bmp388.h"
 #include "exti.h"
 #include "timer3.h"
 
@@ -85,7 +86,7 @@ uint32_t vector_tbl[] __attribute__((section(".isr_vector_tbl"))) = {
     (uint32_t)&HardFault_Handler,  // 37: USART1 global interrupt
     (uint32_t)&HardFault_Handler,  // 38: USART2 global interrupt
     0,                             // 39: EMPTY
-    (uint32_t)&HardFault_Handler,  // 40: EXTI Line[15:10] interrupts
+    (uint32_t)&EXTI9_5_IRQHandler, // 40: EXTI Line[15:10] interrupts
     (uint32_t)&HardFault_Handler,  // 41: RTC Alarms (A and B) through EXTI line interrupt
     (uint32_t)&HardFault_Handler,  // 42: USB On-The-Go FS Wake-up through EXTI line interrupt
     0,                             // 43: EMPTY
@@ -140,7 +141,6 @@ void EXTI1_IRQHandler(void)
     {
         set_imu_GY_flag();
     }
-    
     return;
 }
 
@@ -156,11 +156,23 @@ void EXTI4_IRQHandler(void)
 
 void EXTI9_5_IRQHandler(void)
 {
-    EXTI->PR = (1U << 9);
-    if (~GPIOB->IDR & (1U << 9))
+    uint32_t pr_register = EXTI->PR;
+    uint32_t set_register = 0;
+
+    if ((pr_register & (1U << 9)) && (~GPIOB->IDR & (1U << 9)))
     {
+        set_register |= (1U << 9);
         set_radio_ready();
     }
+
+    if ((pr_register & (1U << 8)) && (GPIOB->IDR & (1U << 8)))
+    {
+        set_register |= (1U << 8);
+        set_bmp_ready();
+    }
+
+    EXTI->PR = set_register;
+
     return;
 }
 
