@@ -127,41 +127,79 @@ static float BMP388_compensate_temperature(uint32_t uncomp_temp)
 
     // Set TEMP for use in pressure calculation
     CALIB_DATA.TEMP = partial_data2 + (partial_data1 * partial_data1) * CALIB_DATA.PAR_T3;
-    // CALIB_DATA.TEMP = partial_data2 + (partial_data1 * partial_data1);
 
     return CALIB_DATA.TEMP;
 }
 
 /**
- * @brief Get the raw pressure data from the sensor
+ * @brief Calculates the compensated pressure value
  *
  * @param None
  *
- * @return Pressure values from sensor concatenated
+ * @return Compensated pressure value
+ *
+ * @note Taken from the Bosch BMP388 documentation Appendix 9
  */
-uint32_t get_pressure_data(void)
+static float BMP388_compensate_pressure(uint32_t uncomp_press)
 {
-    uint8_t error = read_register_single(ERR_ERG_BMP388);
-    if (error & (1U << 0))
-    {
-        return 0;
-    }
+    // Variable to store the compensated pressure
+    float comp_press;
 
+    // Temporary variables used for compensation
+    float partial_data1;
+    float partial_data2;
+    float partial_data3;
+    float partial_data4;
+    float partial_out1;
+    float partial_out2;
+
+    // Calibration data
+    partial_data1 = CALIB_DATA.PAR_P6 * CALIB_DATA.TEMP;
+    partial_data2 = CALIB_DATA.PAR_P7 * (CALIB_DATA.TEMP * CALIB_DATA.TEMP);
+    partial_data3 = CALIB_DATA.PAR_P8 * (CALIB_DATA.TEMP * CALIB_DATA.TEMP * CALIB_DATA.TEMP);
+    partial_out1 = CALIB_DATA.PAR_P5 + partial_data1 + partial_data2 + partial_data3;
+    
+    partial_data1 = CALIB_DATA.PAR_P2 * CALIB_DATA.TEMP;
+    partial_data2 = CALIB_DATA.PAR_P3 * (CALIB_DATA.TEMP * CALIB_DATA.TEMP);
+    partial_data3 = CALIB_DATA.PAR_P4 * (CALIB_DATA.TEMP * CALIB_DATA.TEMP * CALIB_DATA.TEMP);
+    partial_out2 = (float)uncomp_press * (CALIB_DATA.PAR_P1 + partial_data1 + partial_data2 + partial_data3);
+    
+    partial_data1 = (float)uncomp_press * (float)uncomp_press;
+    partial_data2 = CALIB_DATA.PAR_P9 + CALIB_DATA.PAR_P10 * CALIB_DATA.TEMP;
+    partial_data3 = partial_data1 * partial_data2;
+    partial_data4 = partial_data3 + ((float)uncomp_press * (float)uncomp_press * (float)uncomp_press) * CALIB_DATA.PAR_P11;
+    
+    comp_press = partial_out1 + partial_out2 + partial_data4;
+
+    return comp_press;
+}
+
+/**
+ * @brief Get the compensated pressure data from the sensor
+ *
+ * @param None
+ *
+ * @return Pressure value
+ *
+ * @note Taken from the Bosch BMP388 documentation Appendix 9
+ */
+float get_pressure_data(void)
+{
     uint8_t rx_buffer[3] = {0x00, 0x00, 0x00};
 
     read_register_multi(DATA_0_BMP388, rx_buffer, 3);
 
-    uint32_t value = (rx_buffer[2] << 16) | (rx_buffer[1] << 8) | (rx_buffer[0]);
+    uint32_t raw_value = (rx_buffer[2] << 16) | (rx_buffer[1] << 8) | (rx_buffer[0]);
 
-    return value;
+    return BMP388_compensate_pressure(raw_value);
 }
 
 /**
- * @brief Get the temperature data from the sensor
+ * @brief Get the compensated temperature data from the sensor
  *
  * @param None
  *
- * @return Temperature values from sensor concatenated
+ * @return Temperature value
  */
 float get_temperature_data(void)
 {
@@ -196,9 +234,6 @@ static uint8_t get_device_id(void)
  */
 static void get_calibration_data(void)
 {
-    // Make sure the array is aligned in memory
-    // So that when it gets cast to the struct it lines up
-    // uint8_t __attribute__((aligned(2))) rx_buffer[21];
     uint8_t rx_buffer[21];
 
     // Read manufacturer calibration values
@@ -213,22 +248,17 @@ static void get_calibration_data(void)
     CALIB_DATA.PAR_T3 = (float)raw_calib.NVM_PAR_T3 / 281474976710656.0f;
     // CALIB_DATA.PAR_T3 = 0.0;
 
-    CALIB_DATA.PAR_P1 = (raw_calib.NVM_PAR_P1 - (float)(2 << 14)) / (float)(2 << 20);
-    CALIB_DATA.PAR_P2 = (raw_calib.NVM_PAR_P1 - (float)(2 << 14)) / (float)(2 << 29);
-    // CALIB_DATA.PAR_P3 = raw_calib.NVM_PAR_P3 / (float)(2 << 32);
-    CALIB_DATA.PAR_P3 = 0.0;
-    // CALIB_DATA.PAR_P4 = raw_calib.NVM_PAR_P4 / (float)(2 << 37);
-    CALIB_DATA.PAR_P4 = 0.0;
-    CALIB_DATA.PAR_P5 = raw_calib.NVM_PAR_P5 / (float)(2 >> 3);
-    CALIB_DATA.PAR_P6 = raw_calib.NVM_PAR_P6 / (float)(2 << 6);
-    CALIB_DATA.PAR_P7 = raw_calib.NVM_PAR_P7 / (float)(2 << 8);
-    CALIB_DATA.PAR_P8 = raw_calib.NVM_PAR_P8 / (float)(2 << 15);
-    // CALIB_DATA.PAR_P9 = raw_calib.NVM_PAR_P9 / (float)(2 << 48);
-    CALIB_DATA.PAR_P9 = 0.0;
-    // CALIB_DATA.PAR_P10 = raw_calib.NVM_PAR_P10 / (float)(2 << 48);
-    CALIB_DATA.PAR_P10 = 0.0;
-    // CALIB_DATA.PAR_P11 = raw_calib.NVM_PAR_P11 / (float)(2 << 65);
-    CALIB_DATA.PAR_P11 = 0.0;
+    CALIB_DATA.PAR_P1 = ((float)raw_calib.NVM_PAR_P1 - 16384.0f) / 1048576.0f;
+    CALIB_DATA.PAR_P2 = ((float)raw_calib.NVM_PAR_P2 - 16384.0f) / 536870912.0f;
+    CALIB_DATA.PAR_P3 = (float)raw_calib.NVM_PAR_P3 / 4294967296.0f;
+    CALIB_DATA.PAR_P4 = (float)raw_calib.NVM_PAR_P4 / 137438953472.0f;
+    CALIB_DATA.PAR_P5 = (float)raw_calib.NVM_PAR_P5 * 8.0f;
+    CALIB_DATA.PAR_P6 = (float)raw_calib.NVM_PAR_P6 / 128.0f;
+    CALIB_DATA.PAR_P7 = (float)raw_calib.NVM_PAR_P7 / 512.0f;
+    CALIB_DATA.PAR_P8 = (float)raw_calib.NVM_PAR_P8 / 32768.0f;
+    CALIB_DATA.PAR_P9 = (float)raw_calib.NVM_PAR_P9 / 281474976710656.0f;
+    CALIB_DATA.PAR_P10 = (float)raw_calib.NVM_PAR_P10 / 281474976710656.0f;
+    CALIB_DATA.PAR_P11 = (float)raw_calib.NVM_PAR_P11 / 36893488147419100000.0f;
 }
 
 /**

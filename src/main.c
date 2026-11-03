@@ -136,6 +136,7 @@ int main(void)
     read_radio(&packet, P0_PACKET_SIZE);
 
     float temperature = 0.0;
+    float pressure = 0.0;
 
     while (1)
     {
@@ -172,6 +173,7 @@ int main(void)
             reset_bmp_ready();
 
             temperature = get_temperature_data();
+            pressure = get_pressure_data();
 
             char temp_str[MAX_FLOAT_STRING];
             float_to_str(temperature, temp_str, 3);
