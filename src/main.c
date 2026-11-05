@@ -178,8 +178,15 @@ int main(void)
             char temp_str[MAX_FLOAT_STRING];
             float_to_str(temperature, temp_str, 3);
             char temp_msg[MAX_STRING_CONCAT];
-            str_concat("Temp = ", temp_str, temp_msg);
+            str_concat("Temperature = ", temp_str, temp_msg);
             usart_write_string(temp_msg);
+            usart_write_char('\n');
+
+            char pres_str[MAX_FLOAT_STRING];
+            float_to_str(pressure, pres_str, 3);
+            char pres_msg[MAX_STRING_CONCAT];
+            str_concat("Pressure = ", pres_str, pres_msg);
+            usart_write_string(pres_msg);
             usart_write_char('\n');
         }
 

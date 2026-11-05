@@ -84,7 +84,7 @@ typedef struct
 } CalibrationData_TypeDef;
 #pragma pack(pop)
 
-uint32_t get_pressure_data(void);
+float get_pressure_data(void);
 float get_temperature_data(void);
 uint8_t init_bmp388(void);
 void set_bmp_ready(void);

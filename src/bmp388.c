@@ -11,12 +11,13 @@
 
 #define DEVICE_ID (0x50)
 
-static uint8_t MAX_BUFFER_SIZE = 8;
+static uint8_t MAX_BUFFER_SIZE = 32;
 volatile uint8_t BMP_FLAG = 0;
 
 // Make sure the array is aligned in memory
 // So that when it gets cast to the struct it lines up
 CalibrationData_TypeDef CALIB_DATA;
+RawCalibrationData_TypeDef RAW_CALIB_DATA;
 
 /**
  * @brief Internal function to write byte to specific register
@@ -158,17 +159,17 @@ static float BMP388_compensate_pressure(uint32_t uncomp_press)
     partial_data2 = CALIB_DATA.PAR_P7 * (CALIB_DATA.TEMP * CALIB_DATA.TEMP);
     partial_data3 = CALIB_DATA.PAR_P8 * (CALIB_DATA.TEMP * CALIB_DATA.TEMP * CALIB_DATA.TEMP);
     partial_out1 = CALIB_DATA.PAR_P5 + partial_data1 + partial_data2 + partial_data3;
-    
+
     partial_data1 = CALIB_DATA.PAR_P2 * CALIB_DATA.TEMP;
     partial_data2 = CALIB_DATA.PAR_P3 * (CALIB_DATA.TEMP * CALIB_DATA.TEMP);
     partial_data3 = CALIB_DATA.PAR_P4 * (CALIB_DATA.TEMP * CALIB_DATA.TEMP * CALIB_DATA.TEMP);
     partial_out2 = (float)uncomp_press * (CALIB_DATA.PAR_P1 + partial_data1 + partial_data2 + partial_data3);
-    
+
     partial_data1 = (float)uncomp_press * (float)uncomp_press;
     partial_data2 = CALIB_DATA.PAR_P9 + CALIB_DATA.PAR_P10 * CALIB_DATA.TEMP;
     partial_data3 = partial_data1 * partial_data2;
     partial_data4 = partial_data3 + ((float)uncomp_press * (float)uncomp_press * (float)uncomp_press) * CALIB_DATA.PAR_P11;
-    
+
     comp_press = partial_out1 + partial_out2 + partial_data4;
 
     return comp_press;
@@ -226,7 +227,7 @@ static uint8_t get_device_id(void)
 }
 
 /**
- * @brief Get and convert the manufacturer defined calibration data in memory
+ * @brief Get and convert the manufacturer calibration constant from memory
  *
  * @param None
  *
@@ -235,30 +236,64 @@ static uint8_t get_device_id(void)
 static void get_calibration_data(void)
 {
     uint8_t rx_buffer[21];
-
-    // Read manufacturer calibration values
     read_register_multi(0x31, rx_buffer, 21);
 
+    uint16_t t1 = ((uint16_t)rx_buffer[1] << 8) | rx_buffer[0];
+    uint16_t t2 = ((uint16_t)rx_buffer[3] << 8) | rx_buffer[2];
+    uint8_t t3 = rx_buffer[4];
+
+    uint16_t p1 = ((uint16_t)rx_buffer[6] << 8) | rx_buffer[5];
+    uint16_t p2 = ((uint16_t)rx_buffer[8] << 8) | rx_buffer[7];
+    uint8_t p3 = rx_buffer[9];
+    uint8_t p4 = rx_buffer[10];
+    uint16_t p5 = ((uint16_t)rx_buffer[12] << 8) | rx_buffer[11];
+    uint16_t p6 = ((uint16_t)rx_buffer[14] << 8) | rx_buffer[13];
+    uint8_t p7 = rx_buffer[15];
+    uint8_t p8 = rx_buffer[16];
+    uint16_t p9 = ((uint16_t)rx_buffer[18] << 8) | rx_buffer[17];
+    uint8_t p10 = rx_buffer[19];
+    uint8_t p11 = rx_buffer[20];
+
     // Put the raw NVM values into the struct
-    RawCalibrationData_TypeDef raw_calib = *(RawCalibrationData_TypeDef *)rx_buffer;
+    RAW_CALIB_DATA.NVM_PAR_T1 = t1;
+    RAW_CALIB_DATA.NVM_PAR_T2 = t2;
+    RAW_CALIB_DATA.NVM_PAR_T3 = (int8_t)t3;
+
+    RAW_CALIB_DATA.NVM_PAR_P1 = (int16_t)p1;
+    RAW_CALIB_DATA.NVM_PAR_P2 = (int16_t)p2;
+    RAW_CALIB_DATA.NVM_PAR_P3 = (int8_t)p3;
+    RAW_CALIB_DATA.NVM_PAR_P4 = (int8_t)p4;
+    RAW_CALIB_DATA.NVM_PAR_P5 = p5;
+    RAW_CALIB_DATA.NVM_PAR_P6 = p6;
+    RAW_CALIB_DATA.NVM_PAR_P7 = (int8_t)p7;
+    RAW_CALIB_DATA.NVM_PAR_P8 = (int8_t)p8;
+    RAW_CALIB_DATA.NVM_PAR_P9 = (int16_t)p9;
+    RAW_CALIB_DATA.NVM_PAR_P10 = (int8_t)p10;
+    RAW_CALIB_DATA.NVM_PAR_P11 = (int8_t)p11;
 
     // Convert to floating point
-    CALIB_DATA.PAR_T1 = (float)raw_calib.NVM_PAR_T1 * 256.0f;
-    CALIB_DATA.PAR_T2 = (float)raw_calib.NVM_PAR_T2 / 1073741824.0f;
-    CALIB_DATA.PAR_T3 = (float)raw_calib.NVM_PAR_T3 / 281474976710656.0f;
+    CALIB_DATA.PAR_T1 = (float)RAW_CALIB_DATA.NVM_PAR_T1 * 256.0f;
+    CALIB_DATA.PAR_T2 = (float)RAW_CALIB_DATA.NVM_PAR_T2 / 1073741824.0f;
+    CALIB_DATA.PAR_T3 = (float)RAW_CALIB_DATA.NVM_PAR_T3 / 281474976710656.0f;
     // CALIB_DATA.PAR_T3 = 0.0;
 
-    CALIB_DATA.PAR_P1 = ((float)raw_calib.NVM_PAR_P1 - 16384.0f) / 1048576.0f;
-    CALIB_DATA.PAR_P2 = ((float)raw_calib.NVM_PAR_P2 - 16384.0f) / 536870912.0f;
-    CALIB_DATA.PAR_P3 = (float)raw_calib.NVM_PAR_P3 / 4294967296.0f;
-    CALIB_DATA.PAR_P4 = (float)raw_calib.NVM_PAR_P4 / 137438953472.0f;
-    CALIB_DATA.PAR_P5 = (float)raw_calib.NVM_PAR_P5 * 8.0f;
-    CALIB_DATA.PAR_P6 = (float)raw_calib.NVM_PAR_P6 / 128.0f;
-    CALIB_DATA.PAR_P7 = (float)raw_calib.NVM_PAR_P7 / 512.0f;
-    CALIB_DATA.PAR_P8 = (float)raw_calib.NVM_PAR_P8 / 32768.0f;
-    CALIB_DATA.PAR_P9 = (float)raw_calib.NVM_PAR_P9 / 281474976710656.0f;
-    CALIB_DATA.PAR_P10 = (float)raw_calib.NVM_PAR_P10 / 281474976710656.0f;
-    CALIB_DATA.PAR_P11 = (float)raw_calib.NVM_PAR_P11 / 36893488147419100000.0f;
+    // CALIB_DATA.PAR_P1 = ((float)RAW_CALIB_DATA.NVM_PAR_P1 - 16384.0f) / 1048576.0f;
+    CALIB_DATA.PAR_P1 = (float)RAW_CALIB_DATA.NVM_PAR_P1 - 16384.0f;
+    CALIB_DATA.PAR_P1 /= 1048576.0f;
+    // CALIB_DATA.PAR_P2 = ((float)RAW_CALIB_DATA.NVM_PAR_P2 - 16384.0f) / 536870912.0f;
+    CALIB_DATA.PAR_P2 = (float)RAW_CALIB_DATA.NVM_PAR_P2 - 16384.0f;
+    CALIB_DATA.PAR_P2 /= 536870912.0f;
+    CALIB_DATA.PAR_P3 = (float)RAW_CALIB_DATA.NVM_PAR_P3 / 4294967296.0f;
+    CALIB_DATA.PAR_P4 = (float)RAW_CALIB_DATA.NVM_PAR_P4 / 137438953472.0f;
+    CALIB_DATA.PAR_P5 = (float)RAW_CALIB_DATA.NVM_PAR_P5 * 8.0f;
+    CALIB_DATA.PAR_P6 = (float)RAW_CALIB_DATA.NVM_PAR_P6 / 64.0f;
+    CALIB_DATA.PAR_P7 = (float)RAW_CALIB_DATA.NVM_PAR_P7 / 256.0f;
+    CALIB_DATA.PAR_P8 = (float)RAW_CALIB_DATA.NVM_PAR_P8 / 32768.0f;
+    CALIB_DATA.PAR_P9 = (float)RAW_CALIB_DATA.NVM_PAR_P9 / 281474976710656.0f;
+    CALIB_DATA.PAR_P10 = (float)RAW_CALIB_DATA.NVM_PAR_P10 / 281474976710656.0f;
+    CALIB_DATA.PAR_P11 = (float)RAW_CALIB_DATA.NVM_PAR_P11 / 36893488147419100000.0f;
+
+    return;
 }
 
 /**
@@ -279,6 +314,7 @@ uint8_t init_bmp388(void)
         success = 0;
     }
 
+    // get_calibration_data();
     get_calibration_data();
 
     // Set interrupt info: push-pull, active high, latching, data ready
