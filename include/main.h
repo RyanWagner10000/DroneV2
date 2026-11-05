@@ -22,6 +22,15 @@
 #include "nrf24.h"
 #include "bmp388.h"
 
+typedef struct
+{
+    uint8_t capacity;
+    uint8_t head;
+    uint8_t count;
+    float sum;
+    float *buffer;
+} RollingAverage;
+
 enum CONTROLLER_BUTTON
 {
     BUTTON_A = 0,

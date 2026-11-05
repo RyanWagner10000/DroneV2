@@ -10,12 +10,19 @@
 #include <math.h> // Required for powf()
 #include <errno.h>
 
+#define BARO_CAP (30)
+
+// Global IMU values
 int16_t accel_xyz[3] = {0, 0, 0};
 int16_t gyro_xyz[3] = {0, 0, 0};
 // int16_t mag_xyz[3] = {0, 0, 0};
+
+// Global baro values
 float pressure = 0.0;
 float pressure_ground = 0.0;
-float relative_height = 0.0;
+float height = 0.0;
+RollingAverage relative_height;
+float ra_buffer[BARO_CAP] = {0};
 
 /**
  * @brief Function to return error number for math.h library
@@ -89,7 +96,7 @@ static void init_modules(void)
     if (pass)
     {
         usart_write_string("Radio Setup!\n");
-        print_radio_settings();
+        // print_radio_settings();
     }
     else
     {
@@ -101,6 +108,13 @@ static void init_modules(void)
     pass = init_bmp388();
     if (pass)
     {
+        // Setup rolling average
+        relative_height.buffer = ra_buffer;
+        relative_height.capacity = BARO_CAP;
+        relative_height.count = 0;
+        relative_height.head = 0;
+        relative_height.sum = 0;
+
         init_bmp_exti();
         reset_bmp_ready();
         usart_write_string("Altimeter Setup!\n");
@@ -115,14 +129,40 @@ static void init_modules(void)
     return;
 }
 
+/**
+ * @brief Function to calculate and update the relative height rolling average
+ *
+ * @param None
+ *
+ * @return None
+ */
 static float calculate_relative_height(void)
 {
     // Poor linear approx.
     // return (pressure_ground - pressure) * 0.083; // m/Pa
 
     // Better but slower approx.
-    float ratio = pressure / pressure_ground;
-    return 44307.7f * (1.0f - powf(ratio, 0.190284f)); // meters
+    float new_value = 44307.7f * (1.0f - powf(pressure / pressure_ground, 0.190284f)); // meters
+    
+    // Update checks
+    if (relative_height.count < relative_height.capacity)
+    {
+        // Window isn't full yet
+        relative_height.sum += new_value;
+        relative_height.buffer[relative_height.head] = new_value;
+        relative_height.head = (relative_height.head + 1) % relative_height.capacity;
+        relative_height.count++;
+    } else
+    {
+        // Reached the limit to the window, subtract old value
+        float old_value = relative_height.buffer[relative_height.head];
+        relative_height.sum -= old_value;
+        relative_height.sum += new_value;
+        relative_height.buffer[relative_height.head] = new_value;
+        relative_height.head = (relative_height.head + 1) % relative_height.capacity;
+    }
+    
+    return (float)relative_height.sum / (float)relative_height.count;
 }
 
 /**
@@ -149,11 +189,11 @@ int main(void)
 
     // Sensor start up, getting the averages going before takeoff
     uint8_t break_out = 0;
-    float pressure_avg_num = 0.0;
-    uint16_t pressure_avg_den = 0;
 
     on_led(BLUE_LED);
     restart_one_sec_timer();
+    float avg_num = 0.0;
+    uint16_t avg_den = 0;
 
     while (break_out < 5)
     {
@@ -176,9 +216,9 @@ int main(void)
         {
             reset_bmp_ready();
 
-            // Contribute to pressure average
-            pressure_avg_num += get_pressure_data();
-            pressure_avg_den++;
+            // Contribute to base pressure average
+            avg_num += get_pressure_data();
+            avg_den++;
         }
 
         if (get_one_sec_flag())
@@ -191,8 +231,8 @@ int main(void)
 
     off_led(BLUE_LED);
 
-    // Set relative height to 0
-    pressure_ground = pressure_avg_num / pressure_avg_den;
+    // Set base height/pressure
+    pressure_ground = avg_num / (float)avg_den;
 
     while (1)
     {
@@ -212,16 +252,12 @@ int main(void)
         {
             reset_imu_XL_flag();
             get_accel_data(accel_xyz);
-
-            // print_xyz(accel_xyz);
         }
 
         if (get_imu_GY_flag() == 1U)
         {
             reset_imu_GY_flag();
             get_gyro_data(gyro_xyz);
-
-            // print_xyz(gyro_xyz);
         }
 
         if (get_bmp_ready() == 1U)
@@ -229,13 +265,7 @@ int main(void)
             reset_bmp_ready();
 
             pressure = get_pressure_data();
-            relative_height = calculate_relative_height();
-            char f_buf[MAX_FLOAT_STRING];
-            char s_buf[MAX_STRING_CONCAT];
-            float_to_str(relative_height, f_buf, 3);
-            str_concat("Height: ", f_buf, s_buf);
-            usart_write_string(s_buf);
-            usart_write_char('\n');
+            height = calculate_relative_height();
         }
 
         if (get_one_sec_flag())
