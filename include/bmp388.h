@@ -85,7 +85,6 @@ typedef struct
 #pragma pack(pop)
 
 float get_pressure_data(void);
-float get_temperature_data(void);
 uint8_t init_bmp388(void);
 void set_bmp_ready(void);
 uint8_t get_bmp_ready(void);

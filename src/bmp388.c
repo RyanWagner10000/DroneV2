@@ -118,7 +118,7 @@ static void read_register_multi(uint8_t address, uint8_t *values, uint8_t length
  *
  * @return Compensated temperature value
  */
-static float BMP388_compensate_temperature(uint32_t uncomp_temp)
+static void BMP388_compensate_temperature(uint32_t uncomp_temp)
 {
     float partial_data1;
     float partial_data2;
@@ -129,7 +129,7 @@ static float BMP388_compensate_temperature(uint32_t uncomp_temp)
     // Set TEMP for use in pressure calculation
     CALIB_DATA.TEMP = partial_data2 + (partial_data1 * partial_data1) * CALIB_DATA.PAR_T3;
 
-    return CALIB_DATA.TEMP;
+    return;
 }
 
 /**
@@ -186,31 +186,18 @@ static float BMP388_compensate_pressure(uint32_t uncomp_press)
  */
 float get_pressure_data(void)
 {
-    uint8_t rx_buffer[3] = {0x00, 0x00, 0x00};
-
-    read_register_multi(DATA_0_BMP388, rx_buffer, 3);
-
-    uint32_t raw_value = (rx_buffer[2] << 16) | (rx_buffer[1] << 8) | (rx_buffer[0]);
-
-    return BMP388_compensate_pressure(raw_value);
-}
-
-/**
- * @brief Get the compensated temperature data from the sensor
- *
- * @param None
- *
- * @return Temperature value
- */
-float get_temperature_data(void)
-{
+    // Get temperature value first
     uint8_t rx_buffer[3] = {0x00, 0x00, 0x00};
 
     read_register_multi(DATA_3_BMP388, rx_buffer, 3);
-
     uint32_t raw_value = (rx_buffer[2] << 16) | (rx_buffer[1] << 8) | (rx_buffer[0]);
+    BMP388_compensate_temperature(raw_value);
 
-    return BMP388_compensate_temperature(raw_value);
+    // Get pressure value
+    read_register_multi(DATA_0_BMP388, rx_buffer, 3);
+    raw_value = (rx_buffer[2] << 16) | (rx_buffer[1] << 8) | (rx_buffer[0]);
+
+    return BMP388_compensate_pressure(raw_value);
 }
 
 /**
@@ -275,12 +262,9 @@ static void get_calibration_data(void)
     CALIB_DATA.PAR_T1 = (float)RAW_CALIB_DATA.NVM_PAR_T1 * 256.0f;
     CALIB_DATA.PAR_T2 = (float)RAW_CALIB_DATA.NVM_PAR_T2 / 1073741824.0f;
     CALIB_DATA.PAR_T3 = (float)RAW_CALIB_DATA.NVM_PAR_T3 / 281474976710656.0f;
-    // CALIB_DATA.PAR_T3 = 0.0;
 
-    // CALIB_DATA.PAR_P1 = ((float)RAW_CALIB_DATA.NVM_PAR_P1 - 16384.0f) / 1048576.0f;
     CALIB_DATA.PAR_P1 = (float)RAW_CALIB_DATA.NVM_PAR_P1 - 16384.0f;
     CALIB_DATA.PAR_P1 /= 1048576.0f;
-    // CALIB_DATA.PAR_P2 = ((float)RAW_CALIB_DATA.NVM_PAR_P2 - 16384.0f) / 536870912.0f;
     CALIB_DATA.PAR_P2 = (float)RAW_CALIB_DATA.NVM_PAR_P2 - 16384.0f;
     CALIB_DATA.PAR_P2 /= 536870912.0f;
     CALIB_DATA.PAR_P3 = (float)RAW_CALIB_DATA.NVM_PAR_P3 / 4294967296.0f;
@@ -314,11 +298,9 @@ uint8_t init_bmp388(void)
         success = 0;
     }
 
-    // get_calibration_data();
     get_calibration_data();
 
     // Set interrupt info: push-pull, active high, latching, data ready
-    // write_register_single(INT_CTRL_BMP388, 0x47);
     write_register_single(INT_CTRL_BMP388, 0x46);
     check_value = read_register_single(INT_CTRL_BMP388);
     if (check_value != 0x46)
@@ -326,8 +308,7 @@ uint8_t init_bmp388(void)
         success = 0;
     }
 
-    // Set oversampling: 8x Pressure, 2x Temperature
-    // write_register_single(OSR_BMP388, 0x0B);
+    // Set oversampling: 8x Pressure, 1x Temperature
     write_register_single(OSR_BMP388, 0x03);
     check_value = read_register_single(OSR_BMP388);
     if (check_value != 0x03)
@@ -353,7 +334,6 @@ uint8_t init_bmp388(void)
 
     // Enable sensors
     write_register_single(PWR_CTRL_BMP388, 0x33);
-    // write_register_single(PWR_CTRL_BMP388, 0x13);
     check_value = read_register_single(PWR_CTRL_BMP388);
     if (check_value != 0x33)
     {

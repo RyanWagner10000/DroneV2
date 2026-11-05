@@ -7,10 +7,27 @@
  */
 
 #include "main.h"
+#include <math.h> // Required for powf()
+#include <errno.h>
 
 int16_t accel_xyz[3] = {0, 0, 0};
 int16_t gyro_xyz[3] = {0, 0, 0};
 // int16_t mag_xyz[3] = {0, 0, 0};
+float pressure = 0.0;
+float pressure_ground = 0.0;
+float relative_height = 0.0;
+
+/**
+ * @brief Function to return error number for math.h library
+ *
+ * @param None
+ *
+ * @return Error number
+ */
+int *__errno(void)
+{
+    return &errno;
+}
 
 /**
  * @brief Function to init all the standard peripherals and report success/fail
@@ -19,7 +36,7 @@ int16_t gyro_xyz[3] = {0, 0, 0};
  *
  * @return None
  */
-void init_peripherals(void)
+static void init_peripherals(void)
 {
     init_rcc();
     init_fpu();
@@ -63,7 +80,7 @@ void init_peripherals(void)
  *
  * @return None
  */
-void init_modules(void)
+static void init_modules(void)
 {
     // Init IMU module
     init_lsm9ds1();
@@ -84,7 +101,6 @@ void init_modules(void)
     pass = init_bmp388();
     if (pass)
     {
-        delay_millisecond(100);
         init_bmp_exti();
         reset_bmp_ready();
         usart_write_string("Altimeter Setup!\n");
@@ -99,19 +115,15 @@ void init_modules(void)
     return;
 }
 
-// static void print_xyz(int16_t *xyz)
-// {
-//     usart_write_string("[");
-//     usart_write_number((int32_t)xyz[0]);
-//     usart_write_char(' ');
-//     usart_write_number((int32_t)xyz[1]);
-//     usart_write_char(' ');
-//     usart_write_number((int32_t)xyz[2]);
-//     usart_write_char(']');
-//     usart_write_char('\n');
+static float calculate_relative_height(void)
+{
+    // Poor linear approx.
+    // return (pressure_ground - pressure) * 0.083; // m/Pa
 
-//     return;
-// }
+    // Better but slower approx.
+    float ratio = pressure / pressure_ground;
+    return 44307.7f * (1.0f - powf(ratio, 0.190284f)); // meters
+}
 
 /**
  * @brief Main forever while-loop
@@ -135,8 +147,52 @@ int main(void)
     set_rx_mode();
     read_radio(&packet, P0_PACKET_SIZE);
 
-    float temperature = 0.0;
-    float pressure = 0.0;
+    // Sensor start up, getting the averages going before takeoff
+    uint8_t break_out = 0;
+    float pressure_avg_num = 0.0;
+    uint16_t pressure_avg_den = 0;
+
+    on_led(BLUE_LED);
+    restart_one_sec_timer();
+
+    while (break_out < 5)
+    {
+        if (get_radio_ready() == 1U)
+        {
+            reset_radio_ready();
+        }
+
+        if (get_imu_XL_flag() == 1U)
+        {
+            reset_imu_XL_flag();
+        }
+
+        if (get_imu_GY_flag() == 1U)
+        {
+            reset_imu_GY_flag();
+        }
+
+        if (get_bmp_ready() == 1U)
+        {
+            reset_bmp_ready();
+
+            // Contribute to pressure average
+            pressure_avg_num += get_pressure_data();
+            pressure_avg_den++;
+        }
+
+        if (get_one_sec_flag())
+        {
+            reset_one_sec_flag();
+
+            break_out++;
+        }
+    }
+
+    off_led(BLUE_LED);
+
+    // Set relative height to 0
+    pressure_ground = pressure_avg_num / pressure_avg_den;
 
     while (1)
     {
@@ -172,21 +228,13 @@ int main(void)
         {
             reset_bmp_ready();
 
-            temperature = get_temperature_data();
             pressure = get_pressure_data();
-
-            char temp_str[MAX_FLOAT_STRING];
-            float_to_str(temperature, temp_str, 3);
-            char temp_msg[MAX_STRING_CONCAT];
-            str_concat("Temperature = ", temp_str, temp_msg);
-            usart_write_string(temp_msg);
-            usart_write_char('\n');
-
-            char pres_str[MAX_FLOAT_STRING];
-            float_to_str(pressure, pres_str, 3);
-            char pres_msg[MAX_STRING_CONCAT];
-            str_concat("Pressure = ", pres_str, pres_msg);
-            usart_write_string(pres_msg);
+            relative_height = calculate_relative_height();
+            char f_buf[MAX_FLOAT_STRING];
+            char s_buf[MAX_STRING_CONCAT];
+            float_to_str(relative_height, f_buf, 3);
+            str_concat("Height: ", f_buf, s_buf);
+            usart_write_string(s_buf);
             usart_write_char('\n');
         }
 
