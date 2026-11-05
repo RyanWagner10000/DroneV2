@@ -93,7 +93,7 @@ void init_radio_exti(void)
     // Enable clock access to SYSCFG
     RCC->APB2ENR |= (1U << 14);
 
-    // Select Port B for pin 9 on EXTI3
+    // Select Port B for pin 9 on EXTI9
     SYSCFG->EXTICR3 |= (1U << 4);
 
     // Unmask EXTI9
@@ -102,7 +102,49 @@ void init_radio_exti(void)
     // Select falling edge trigger
     EXTI->FTSR |= (1U << 9);
 
-    // Enable NVIC bits for EXTI1 and EXTI4
+    // Enable NVIC bits for EXTI9
+    NVIC_SetPriority(EXTI9_5_IRQn, 0);
+    NVIC_EnableIRQ(EXTI9_5_IRQn);
+
+    // Enable Interrupts
+    __enable_irq();
+
+    return;
+}
+
+/**
+ * @brief Function to init the pin used for temp/press external interrupt
+ *
+ * @param None
+ *
+ * @return None
+ */
+void init_bmp_exti(void)
+{
+
+    // Disable interrupts
+    __disable_irq();
+
+    // Enable clock access to GPIOB
+    RCC->AHB1ENR |= (1U << 1);
+
+    // Set PB8 input and pull-down resistor
+    GPIOB->MODER &= ~(3U << 16);
+    GPIOB->PUPDR |= (2U << 16);
+
+    // Enable clock access to SYSCFG
+    RCC->APB2ENR |= (1U << 14);
+
+    // Select Port B for pin 8
+    SYSCFG->EXTICR3 |= (1U << 0);
+
+    // Unmask EXTI8
+    EXTI->IMR |= (1U << 8);
+
+    // Select falling edge trigger
+    EXTI->RTSR |= (1U << 8);
+
+    // Enable NVIC bits for EXTI8
     NVIC_SetPriority(EXTI9_5_IRQn, 0);
     NVIC_EnableIRQ(EXTI9_5_IRQn);
 

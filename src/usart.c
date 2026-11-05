@@ -54,7 +54,7 @@ void init_usart(void)
  *
  * @return Size of input character array
  */
-uint32_t get_string_length(const char *s)
+static uint32_t get_string_length(const char *s)
 {
     uint32_t length = 0;
 
@@ -129,7 +129,7 @@ void usart_write_char(uint8_t character)
 void usart_write_number(int32_t value)
 {
     // Max 10 digits for int32_t + null terminator + 1 extra for sign
-    char buffer[12]; 
+    char buffer[12];
     int i = 0;
 
     // Handle zero case
@@ -218,7 +218,7 @@ void str_concat(char *str1, char *str2, char *concat)
  *
  * @return None
  */
-void reverse(char *str, uint32_t len)
+static void reverse(char *str, uint32_t len)
 {
     uint32_t i = 0, j = len - 1;
     while (i < j)
@@ -289,10 +289,8 @@ uint32_t int_to_str(int32_t n, char *buffer)
  *
  * @return None
  */
-void float_to_str(float n, char *buffer, uint32_t afterpoint)
+void float_to_str(float n, char *buffer, uint8_t afterpoint)
 {
-    afterpoint++;
-
     // Handle negative numbers
     uint32_t index = 0;
     if (n < 0.0f)
@@ -317,7 +315,7 @@ void float_to_str(float n, char *buffer, uint32_t afterpoint)
         buffer[i++] = '.';
 
         // Get fractional digits
-        for (uint32_t k = 0; k < afterpoint; k++)
+        for (uint8_t k = 0; k < afterpoint; k++)
         {
             fpart *= 10.0f;
             uint32_t digit = (uint32_t)fpart;
@@ -381,7 +379,8 @@ void print_register(uint8_t address, uint32_t data, uint8_t format)
         // Print individual bits
         int32_t bit = 0;
         char buffer[2];
-        for (int8_t i = 31; i >= 0; i--) {
+        for (int8_t i = 31; i >= 0; i--)
+        {
             bit = (data >> i) & 1 ? '1' : '0';
             int_to_str(bit, buffer);
             str_concat(concat, buffer, concat);
@@ -399,6 +398,35 @@ void print_register(uint8_t address, uint32_t data, uint8_t format)
         return;
     }
     }
+
+    return;
+}
+
+/**
+ * @brief Print float variable and value to temrinal via USART2
+ *
+ * @param variable_name Name of variable to print
+ * @param value Value of variable
+ * @param decimal Number of decimal places to print
+ *
+ * @return None
+ */
+void print_float_variable(char *variable_name, float value, uint8_t decimals)
+{
+    // Char arrays for float and string
+    char f_buf[MAX_FLOAT_STRING];
+    char s_buf[MAX_STRING_CONCAT];
+
+    // Convert float to string
+    float_to_str(value, f_buf, decimals);
+
+    // Concat '=' and float value for readability
+    str_concat(variable_name, " = ", s_buf);
+    str_concat(s_buf, f_buf, s_buf);
+
+    // Print contents
+    usart_write_string(s_buf);
+    usart_write_char('\n');
 
     return;
 }

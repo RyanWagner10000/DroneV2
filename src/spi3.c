@@ -1,5 +1,5 @@
 /*
- * file: fpu.c
+ * file: spi3.c
  * description: file that sets up the SPI3 communication
  * author: Ryan Wagner
  * date: August 29, 2026
@@ -97,6 +97,15 @@ void init_spi3(void)
     return;
 }
 
+/**
+ * @brief Transmit and/or receive N-many bytes via SPI3
+ *
+ * @param tx_buffer Buffer of transmit information
+ * @param rx_buffer Buffer for received information
+ * @param length Length of buffers
+ *
+ * @return None
+ */
 void transfer_spi3(uint8_t *tx_buffer, uint8_t *rx_buffer, uint8_t length)
 {
     uint8_t i = 0;

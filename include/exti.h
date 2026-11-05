@@ -30,5 +30,6 @@ typedef struct
 
 void init_imu_exti(void);
 void init_radio_exti(void);
+void init_bmp_exti(void);
 
 #endif // EXTI_H
