@@ -55,11 +55,13 @@ I'm just trying to learn as much as I can. Along that note, this repo does not u
 
 ##### Links
 
-| [Overview](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/) | [Pinout](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts) | [Downloads](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/downloads)
+| [Overview](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/) | [Pinout](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/pinouts) | [Downloads](https://learn.adafruit.com/adafruit-lsm9ds1-accelerometer-plus-gyro-plus-magnetometer-9-dof-breakout/downloads) |
 
 ##### Description
 
 This board is an Inertial Measurement Unit (IMU) which incorporates an accelerometer, gyroscope, magnetometer, and temperature sensor all on the same board. Typically, this combination of sensors are used in conjection to calculate the orientation of the board in 3D space, but it can also be used for general tilt sensing, pedometers, tap sensing, etc. This project will use this board to estimate the 3D orientation of the quadcopter in real-time.
+
+This INT1 and INT2 pins on this board are connected to pins PA4 and PA1 on the blackpill, respectively. INT1 handles the accelerometer and gyro data, and INT2 handles the magnetometer data.
 
 ##### Configuration
 
@@ -79,27 +81,41 @@ This sensor was not used at the time of writing, because, frankly, I couldn't im
 
 ---
 
-### Adafruit BME680 Breakout (P3660)
+### CJMCU-388 BMP388 Air Pressure Sensor
 
 ##### Links
 
-| [Overview](https://learn.adafruit.com/adafruit-bme680-humidity-temperature-barometic-pressure-voc-gas/overview) | [Pinout](https://learn.adafruit.com/adafruit-bme680-humidity-temperature-barometic-pressure-voc-gas/pinouts) | [Downloads](https://learn.adafruit.com/adafruit-bme680-humidity-temperature-barometic-pressure-voc-gas/downloads)
+| [Overview](https://www.amazon.com/JESSINIE-Temperature-Detector-Atmospheric-CJMCU-388/dp/B0BG298FN8/ref=sr_1_2?crid=IM6C9VPWLJEL&dib=eyJ2IjoiMSJ9.uXDPHKwqEQnfPX55a-p4fiBrjmKhW0qx4FKlXX34NV7_ah9Lz5uRCuge7mhm_iUlJ4oSCSeXhSZ2tNAtGR-QjMTsPGYMaXUHI9kPGzCyIF2Jw-h3TmJ9xgwwaZGIDrdFWnQgTqj_PEG3BqaMVjLcVS32VFfiAg1zWLtzV9MNPo_BKRv2GmKKnEYXMhzWzwFW-rbPlmiBuvMu77evlf2j_bgosFaxKpoFCZuuyewNGvU.zeoSrWO-sSW-WavludTDE6G-EqGgGBTMPwXbuYzAoIY&dib_tag=se&keywords=bmp388+sensor&qid=1793905498&sprefix=bmp388%2Caps%2C217&sr=8-2) | [Datasheet](https://www.google.com/url?sa=t&source=web&rct=j&opi=89978449&url=https://www.bosch-sensortec.com/media/boschsensortec/downloads/datasheets/bst-bmp388-ds001.pdf&ved=2ahUKEwj1sJKfw_GXAxWRRDABHc1sONEQFnoECA8QAQ&usg=AOvVaw1ebLRr3y-1AzM3HyN6AluN) |
 
 ##### Description
 
-This board is an incorporates a pressure, humidity, temperature, and gas sensor all into one package. The gas sensor functionality will not be used in this setup, but all the other sensors will. This sensor system will estimate the altitude of the drone taking into account the changes in air temperature and humidity which alter the air pressure reading. This is the first time I'm ever using a sensor and sensor data like this, so the accuracy may not be the best, and it will almost certainly be less accurate than GPS.
+This board is an incorporates a pressure and temperature sensor. This sensor system will estimate the height above the ground of the drone, taking into account the changes in air temperature which alter the air pressure density. The Bosch sensor documentation comes with calibration and compensation values that are used to get a more accurate value for temperate and pressure. The INT (interrupt) pin on the module is wired to pin PB8 on the blackpill and is tied into the respective EXTI interrupt. This sensor also has a rolling average applied to the incoming values in order to smooth out the jumpy height measurement.
 
 ##### Configuration
 
-###### Pressure
-
-TBD
-
-###### Humidity
-
-TBD
+The sensor documentation also came with recommended settings for temperature and pressure. Both sensors are set to have an output datarate of 50Hz in a continuous mode.
 
 ###### Temperature
+
+Temperature is setup to only have 1x oversampling and no IIR coefficient.
+
+###### Pressure
+
+Pressure is setup to have a x8 oversampling with an IIR coefficient of 3 to help with the wake and fluctuations of the props or wind.
+
+---
+
+### MATEKSYSSYS Power Monitor 12C-INA-BM
+
+##### Links
+
+| [Overview](https://www.mateksys.com/?portfolio=i2c-ina-bm) | [Datasheet](https://www.ti.com/lit/ds/symlink/ina228.pdf) |
+
+##### Description
+
+This board is a high amperage power monitor board based on the TI INA228. This sensor is wired in series from the battery to the PDB. An I2C interface will configure and get the power level, which will use pins PB6 and PB7 on the blackpill.
+
+##### Configuration
 
 TBD
 
@@ -168,9 +184,13 @@ This advanced timer is used as the update frequency for the IMU, Madgwick filter
 
 It also has an interrupt triggered on its overflow such that it sets a global flag indicating to the Main loop that everything is ready to read and updated. This interrupt also triggers another 1 second flag that was only for debugging purposes like received packets per second and other update rates.
 
+#### TIM 3
+
+This timer is a basic 1 s timer that can be used for debugging purposes, counting flags per second, or things like this.
+
 #### TIM 10
 
-This timer is used as a basic 1 ms timer for the purpose of various initialization timing, buzzer pitch timing, 
+This timer is a basic 1 ms timer mainly used for delay purposes.
 
 #### TIM2 CH1
 
@@ -178,9 +198,9 @@ This timer is used as the PWM signal required to change the pitch of the buzzer 
 
 ### LED's
 
-#### Green, Blue (on board), and Red
+#### Green, Blue, and Red
 
-Three LED's are used on this build for status signalling. The Blue LED is already on the Blackpill and uses PC13. The Green and Red LED's use pins PC14 and PC15 respectively. There is one 220Ω resistor before each LED.
+Three LED's are used on this build for status signalling. The Blue LED is already on the Blackpill but also uses PC13; when turning on the external LED, it turns the board LED off. The Green and Red LED's use pins PC14 and PC15 respectively. There is one 220Ω resistor before each LED.
 
 ### Passive Buzzer
 
@@ -201,6 +221,10 @@ This peripheral uses GPIO pins PA2 & PA3 in alternate function mode to enable ba
 This peripheral use GPIO pins PA5, PA7, PB0, PB1, and PB2 (twice!) for SPI1. This bus is used to communicate to both IMU modules. If other devices need to communicate via SPI1 (and at the same frequency), then they will share the SDO (MISO), SDI (MOSI), and SCL (SCK) pins as the IMU module, but will need another GPIO pin for the CS of the new device. SPI1 is setup to operate at 4MHz, reduced from the 96MHz bus frequency; this was done to limit extra noise on the sensor.
 
 This IMU module is a bit different than most because it has most of the pins on the MEMS chips broken-out on the PCB; usually one would have to use an I2C bus on the Accelerometer/Gyroscope MEMS chip to talk to the Magnetometer. Due to this design, there are two SDI and two SDO pins, one set for the Accelerometer & Gyro, and another set for the magnetometer. Therefore, one GPIO pin on the MCU (PB2) will be getting BOTH serial data lines; so I can't get data from the Accelerometer/Gyro and the Magnetometer at the same time. One couldn't get the data from both MEMS at the same time from the other configuration, but I like this breakout configuration better, because it just makes communication easier at the cost of more GPIO pins.
+
+#### SPI2 (Barometer and SD Card Modules)
+
+This peripheral uses GPIO pins PB13, PB14, and PB15 for the main SPI pins, and PB10 and PB12 for the chip select pins for the BMP388 and the SD Card modules respectively. SPI2 is on a 48 MHz bus, but is converted to 6 MHz.
 
 #### SPI3 (Radio Module)
 
