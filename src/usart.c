@@ -337,7 +337,7 @@ void float_to_str(float n, char *buffer, uint8_t afterpoint)
  *
  * @return None
  */
-void print_register(uint8_t address, uint32_t data, uint8_t format)
+void print_register(char *address, uint32_t data, PrintFormat format)
 {
     switch (format)
     {
@@ -345,15 +345,13 @@ void print_register(uint8_t address, uint32_t data, uint8_t format)
     {
         // Char arrays to hold number
         char data_str[MAX_INT_STRING];
-        char addr_str[MAX_INT_STRING];
         char concat[MAX_STRING_CONCAT];
 
         // Convert ints to strings
         int_to_str((int32_t)data, data_str);
-        int_to_str((int32_t)address, addr_str);
 
         // Concatenate the strings together
-        str_concat("Register ", addr_str, concat);
+        str_concat("Register ", address, concat);
         str_concat(concat, " = ", concat);
         str_concat(concat, data_str, concat);
         str_concat(concat, "\n", concat);
@@ -369,11 +367,10 @@ void print_register(uint8_t address, uint32_t data, uint8_t format)
     case BINARY:
     {
         // Char arrays to hold number
-        char addr_str[MAX_INT_STRING];
         char concat[MAX_STRING_CONCAT];
 
         // Concatenate the strings together
-        str_concat("Register ", addr_str, concat);
+        str_concat("Register ", address, concat);
         str_concat(concat, " = ", concat);
 
         // Print individual bits

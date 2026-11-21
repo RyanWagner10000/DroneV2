@@ -8,16 +8,6 @@
 
 #include "exti.h"
 
-static inline void __disable_irq(void)
-{
-    __asm__ volatile("cpsid i" : : : "memory");
-}
-
-static inline void __enable_irq(void)
-{
-    __asm__ volatile("cpsie i" : : : "memory");
-}
-
 /**
  * @brief Function to init the pins used for IMU external interrupts
  *

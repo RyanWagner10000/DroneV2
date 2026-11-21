@@ -18,11 +18,11 @@
 #define MAX_BIN_STRING (64)
 #define MAX_HEX_STRING (8)
 
-enum printFormat {
+typedef enum {
     DECIMAL,
     HEX,
     BINARY
-};
+} PrintFormat;
 
 #define USART2_BASE 0x40004400
 
@@ -46,7 +46,7 @@ void usart_write_number(int32_t value);
 void str_concat(char *str1, char *str2, char *concat);
 uint32_t int_to_str(int32_t n, char *buffer);
 void float_to_str(float n, char *buffer, uint8_t afterpoint);
-void print_register(uint8_t address, uint32_t data, uint8_t format);
+void print_register(char *address, uint32_t data, PrintFormat format);
 void print_float_variable(char *str, float value, uint8_t decimals);
 
 #endif // USART_H

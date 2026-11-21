@@ -32,4 +32,14 @@ void init_imu_exti(void);
 void init_radio_exti(void);
 void init_bmp_exti(void);
 
+static inline void __disable_irq(void)
+{
+    __asm__ volatile("cpsid i" : : : "memory");
+}
+
+static inline void __enable_irq(void)
+{
+    __asm__ volatile("cpsie i" : : : "memory");
+}
+
 #endif // EXTI_H

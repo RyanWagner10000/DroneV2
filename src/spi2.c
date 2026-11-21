@@ -78,8 +78,8 @@ void init_spi2(void)
     SPI2->CR1 |= (2U << 3);
 
     // Set CPHA and CPOL to 1 (Mode 3) to determine behavior
-    SPI2->CR1 |= (3U << 0);
-    // SPI2->CR1 &= ~(3U << 0);
+    // SPI2->CR1 |= (3U << 0);
+    SPI2->CR1 &= ~(3U << 0);
 
     // Set MSB first
     SPI2->CR1 &= ~(1U << 7);
@@ -106,9 +106,9 @@ void init_spi2(void)
  *
  * @return None
  */
-void transfer_spi2(uint8_t *tx_buffer, uint8_t *rx_buffer, uint8_t length)
+void transfer_spi2(uint8_t *tx_buffer, uint8_t *rx_buffer, uint16_t length)
 {
-    uint8_t i = 0;
+    uint16_t i = 0;
     while (i < length)
     {
         // Wait until TXE is set
@@ -130,7 +130,9 @@ void transfer_spi2(uint8_t *tx_buffer, uint8_t *rx_buffer, uint8_t length)
 
     // Wait for BUSY flag to reset
     while ((SPI2->SR & (1U << 7)))
+    {
         ;
+    }
 
     // Drain the RX buffer of the junk byte clocked in during TX
     while (SPI2->SR & (1U << 0))
@@ -150,7 +152,7 @@ void transfer_spi2(uint8_t *tx_buffer, uint8_t *rx_buffer, uint8_t length)
  *
  * @return None
  */
-void enable_cs_flash(void)
+void enable_cs_sdcard(void)
 {
     // Turn on SPI to device
     GPIOB->ODR &= ~(1U << 10);
@@ -188,7 +190,7 @@ void enable_cs_bmp(void)
  *
  * @return None
  */
-void disable_cs_flash(void)
+void disable_cs_sdcard(void)
 {
 
     // Turn off SPI to device

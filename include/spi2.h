@@ -16,6 +16,9 @@
 
 #define SPI2 ((SPI2_TypeDef *)SPI2_BASE)
 
+#define CS_BMP (12)
+#define CS_SDC (10)
+
 typedef struct
 {
     volatile uint32_t CR1;     // offset: 0x00
@@ -30,10 +33,10 @@ typedef struct
 } SPI2_TypeDef;
 
 void init_spi2(void);
-void transfer_spi2(uint8_t *tx_buffer, uint8_t *rx_buffer, uint8_t length);
-void enable_cs_flash(void);
+void transfer_spi2(uint8_t *tx_buffer, uint8_t *rx_buffer, uint16_t length);
+void enable_cs_sdcard(void);
 void enable_cs_bmp(void);
-void disable_cs_flash(void);
+void disable_cs_sdcard(void);
 void disable_cs_bmp(void);
 
 #endif // SPI2_H

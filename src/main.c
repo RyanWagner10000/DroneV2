@@ -55,9 +55,6 @@ static void init_peripherals(void)
     off_led(RED_LED);
     off_led(BLUE_LED);
 
-    init_imu_exti();
-    init_radio_exti();
-
     init_usart();
     usart_write_string("\n\n--------------------------------------------------\n");
     usart_write_string("USART2 Working!\n");
@@ -89,14 +86,42 @@ static void init_peripherals(void)
  */
 static void init_modules(void)
 {
+    // Init Micro SD Card reader
+    DSTATUS pass = disk_initialize();
+    if (pass == RES_OK)
+    {
+        usart_write_string("SD Card Reader Initialized!\n");
+
+        // Test read
+        uint8_t read_buff[512] = {0x00};
+        pass = disk_read(read_buff, 0, 1);
+        if (pass == RES_OK && read_buff[510] == 0x55 && read_buff[511] == 0xAA)
+        {
+            usart_write_string("  SD Card Read Successful!\n");
+        }
+        else {
+            usart_write_string("!!!!! !!!!! !!!!!  ");
+            usart_write_string("Read Disk Failure");
+            usart_write_string("  !!!!! !!!!! !!!!!\n");
+        }
+    }
+    else
+    {
+        usart_write_string("!!!!! !!!!! !!!!!  ");
+        usart_write_string("SD Card Reader NOT Setup");
+        usart_write_string("  !!!!! !!!!! !!!!!\n");
+    }
+
     // Init IMU module
     init_lsm9ds1();
+    init_imu_exti();
 
-    uint8_t pass = init_radio(0);
+    pass = init_radio(0);
     if (pass)
     {
         usart_write_string("Radio Setup!\n");
         // print_radio_settings();
+        init_radio_exti();
     }
     else
     {
@@ -105,6 +130,7 @@ static void init_modules(void)
         usart_write_string("  !!!!! !!!!! !!!!!\n");
     }
 
+    // Init Barometer module
     pass = init_bmp388();
     if (pass)
     {
@@ -273,6 +299,12 @@ int main(void)
             reset_one_sec_flag();
 
             toggle_led(GREEN_LED);
+
+            __disable_irq();
+
+            // Perform SD Card Write
+
+            __enable_irq();
         }
     }
 

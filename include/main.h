@@ -21,6 +21,7 @@
 #include "exti.h"
 #include "nrf24.h"
 #include "bmp388.h"
+#include "diskio.h"
 
 typedef struct
 {
