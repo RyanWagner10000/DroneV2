@@ -12,17 +12,21 @@
 
 #define BARO_CAP (30)
 
-// Global IMU values
+// Global IMU variables
 int16_t accel_xyz[3] = {0, 0, 0};
 int16_t gyro_xyz[3] = {0, 0, 0};
 // int16_t mag_xyz[3] = {0, 0, 0};
 
-// Global baro values
+// Global baro variables
 float pressure = 0.0;
 float pressure_ground = 0.0;
 float height = 0.0;
 RollingAverage relative_height;
 float ra_buffer[BARO_CAP] = {0};
+
+// Global SD Card File variables
+static FATFS fs;
+static FIL logfile;
 
 /**
  * @brief Function to return error number for math.h library
@@ -87,36 +91,59 @@ static void init_peripherals(void)
 static void init_modules(void)
 {
     // Init Micro SD Card reader
-    DSTATUS pass = disk_initialize();
-    if (pass == RES_OK)
+    FRESULT fr = f_mount(&fs, "", 1); // 1 = mount now: runs disk_initialize, reads boot sector
+    if (fr == FR_OK)
     {
         usart_write_string("SD Card Reader Initialized!\n");
 
-        // Test read
-        uint8_t read_buff[512] = {0x00};
-        pass = disk_read(read_buff, 0, 1);
-        if (pass == RES_OK && read_buff[510] == 0x55 && read_buff[511] == 0xAA)
+        fr = f_open(&logfile, "LOG.BIN", FA_WRITE | FA_OPEN_APPEND);
+
+        if (fr == FR_OK)
         {
-            usart_write_string("  SD Card Read Successful!\n");
-        }
-        else {
-            usart_write_string("!!!!! !!!!! !!!!!  ");
-            usart_write_string("Read Disk Failure");
-            usart_write_string("  !!!!! !!!!! !!!!!\n");
+            usart_write_string("  SD Card File Init Successful!\n");
+
+            UINT bw;
+            uint8_t temp_data_buffer[10] = {'T', 'E', 'S', 'T', 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
+            FRESULT fr = f_write(&logfile, temp_data_buffer, sizeof temp_data_buffer, &bw);
+            if (fr != FR_OK || bw != sizeof temp_data_buffer)
+            {
+                usart_write_string("Failure to write TEST to file\n");
+            }
+
+            f_close(&logfile);
         }
     }
-    else
-    {
-        usart_write_string("!!!!! !!!!! !!!!!  ");
-        usart_write_string("SD Card Reader NOT Setup");
-        usart_write_string("  !!!!! !!!!! !!!!!\n");
-    }
+
+    // DSTATUS fr = disk_initialize();
+    // if (fr == RES_OK)
+    // {
+    //     usart_write_string("SD Card Reader Initialized!\n");
+
+    //     // Test read
+    //     uint8_t read_buff[512] = {0x00};
+    //     fr = disk_read(read_buff, 0, 1);
+    //     if (fr == RES_OK && read_buff[510] == 0x55 && read_buff[511] == 0xAA)
+    //     {
+    //         usart_write_string("  SD Card Read Successful!\n");
+    //     }
+    //     else {
+    //         usart_write_string("!!!!! !!!!! !!!!!  ");
+    //         usart_write_string("Read Disk Failure");
+    //         usart_write_string("  !!!!! !!!!! !!!!!\n");
+    //     }
+    // }
+    // else
+    // {
+    //     usart_write_string("!!!!! !!!!! !!!!!  ");
+    //     usart_write_string("SD Card Reader NOT Setup");
+    //     usart_write_string("  !!!!! !!!!! !!!!!\n");
+    // }
 
     // Init IMU module
     init_lsm9ds1();
     init_imu_exti();
 
-    pass = init_radio(0);
+    uint8_t pass = init_radio(0);
     if (pass)
     {
         usart_write_string("Radio Setup!\n");
@@ -169,7 +196,7 @@ static float calculate_relative_height(void)
 
     // Better but slower approx.
     float new_value = 44307.7f * (1.0f - powf(pressure / pressure_ground, 0.190284f)); // meters
-    
+
     // Update checks
     if (relative_height.count < relative_height.capacity)
     {
@@ -178,7 +205,8 @@ static float calculate_relative_height(void)
         relative_height.buffer[relative_height.head] = new_value;
         relative_height.head = (relative_height.head + 1) % relative_height.capacity;
         relative_height.count++;
-    } else
+    }
+    else
     {
         // Reached the limit to the window, subtract old value
         float old_value = relative_height.buffer[relative_height.head];
@@ -187,7 +215,7 @@ static float calculate_relative_height(void)
         relative_height.buffer[relative_height.head] = new_value;
         relative_height.head = (relative_height.head + 1) % relative_height.capacity;
     }
-    
+
     return (float)relative_height.sum / (float)relative_height.count;
 }
 

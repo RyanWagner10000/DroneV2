@@ -24,7 +24,13 @@
 
 uint8_t disk_status(void)
 {
-	return 1;
+	if (!send_cmd13())
+	{
+		usart_write_string("\n-- Micro Sd Card [CMD13] failure --\n\n");
+		return RES_ERROR;
+	}
+
+	return RES_OK;
 }
 
 /*-----------------------------------------------------------------------*/
@@ -68,6 +74,10 @@ DSTATUS disk_initialize(void)
 
 	// Send ACMD41 until no longer IDLE
 	uint8_t break_out = 100;
+	
+	// Pull CS low
+    enable_cs_sdcard();
+
 	while (break_out--)
 	{
 		// Send CMD55 to let the card know the next command is an app command
@@ -85,6 +95,9 @@ DSTATUS disk_initialize(void)
 
 		delay_millisecond(1);
 	}
+
+	// Pull CS high
+    disable_cs_sdcard();
 
 	if (break_out == 255)
 	{
@@ -123,7 +136,7 @@ DSTATUS disk_read(
 	UINT count	  /* Number of sectors to read */
 )
 {
-	// Send READ CMD and wait for R1 response
+	// Send read command based on number of sectors read
 	if (count == 1)
 	{
 		// Send CMD17 with sector address
@@ -158,19 +171,27 @@ DSTATUS disk_write(
 	UINT count		  /* Number of sectors to write */
 )
 {
-	sector = buff[0];
-	sector++;
-	count++;
+	// Send write command based on number of sectors to write
+	if (count == 1)
+	{
+		// Send CMD24 with sector address
+		if (!send_cmd24((uint8_t *)buff, (uint32_t)sector))
+		{
+			usart_write_string("\n-- Micro Sd Card [CMD24] failure --\n");
+			return RES_ERROR;
+		}
+	}
+	else
+	{
+		// Send CMD25 with sector address
+		if (!send_cmd25((uint8_t *)buff, (uint32_t)sector, (uint32_t)count))
+		{
+			usart_write_string("\n-- Micro Sd Card [CMD25] failure --\n");
+			return RES_ERROR;
+		}
+	}
 
-	// Assert CS low
-	
-	// TODO: Send CMD24 (single block) or CMD25 (multi-block)
-
-	// TODO: Send 0xFE token, 512 bytes from buff, 2 dummy CRC bytes, check data response
-	// TODO: Wait while MISO is low (card busy programming flash)
-	// TODO: Deassert CS high
-
-	return 1;
+	return RES_OK;
 }
 
 #endif
@@ -183,7 +204,10 @@ DSTATUS disk_write(
 DSTATUS disk_ioctl()
 {
 	// Wait until card finishes internal write process (MISO goes high)
-	busy_wait();
+	if (busy_wait())
+	{
+		return RES_OK;
+	}
 
-	return RES_OK;
+	return RES_ERROR;
 }

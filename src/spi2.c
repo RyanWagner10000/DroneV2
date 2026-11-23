@@ -106,7 +106,7 @@ void init_spi2(void)
  *
  * @return None
  */
-void transfer_spi2(uint8_t *tx_buffer, uint8_t *rx_buffer, uint16_t length)
+void transfer_spi2(const uint8_t *tx_buffer, uint8_t *rx_buffer, uint16_t length)
 {
     uint16_t i = 0;
     while (i < length)

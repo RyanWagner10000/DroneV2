@@ -49,6 +49,29 @@ typedef union
 
 typedef union
 {
+    uint32_t raw_r3;
+    struct
+    {
+        uint16_t reserved0 : 15;
+        uint8_t _27_28 : 1;
+        uint8_t _28_29 : 1;
+        uint8_t _29_30 : 1;
+        uint8_t _30_31 : 1;
+        uint8_t _31_32 : 1;
+        uint8_t _32_33 : 1;
+        uint8_t _33_34 : 1;
+        uint8_t _34_35 : 1;
+        uint8_t _35_36 : 1;
+        uint8_t _18_switch : 1;
+        uint8_t reserved1 : 4;
+        uint8_t uhs_2_card_status : 1;
+        uint8_t card_capacity_status : 1;
+        uint8_t card_power_up_status : 1;
+        };
+} R3_return;
+
+typedef union
+{
     uint32_t raw_r7;
     struct
     {
@@ -63,8 +86,11 @@ uint8_t busy_wait(void);
 uint8_t send_cmd0(void);
 uint8_t send_cmd8(void);
 uint8_t send_cmd12(void);
+uint8_t send_cmd13(void);
 uint8_t send_cmd17(uint8_t *buffer, uint32_t addr);
 uint8_t send_cmd18(uint8_t *buffer, uint32_t addr, uint32_t count);
+uint8_t send_cmd24(const uint8_t *buffer, uint32_t addr);
+uint8_t send_cmd25(const uint8_t *buffer, uint32_t addr, uint32_t count);
 uint8_t send_cmd55(void);
 uint8_t send_cmd58(void);
 uint8_t send_acmd41(void);
