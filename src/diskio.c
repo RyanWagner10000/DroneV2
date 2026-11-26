@@ -74,9 +74,9 @@ DSTATUS disk_initialize(void)
 
 	// Send ACMD41 until no longer IDLE
 	uint8_t break_out = 100;
-	
+
 	// Pull CS low
-    enable_cs_sdcard();
+	enable_cs_sdcard();
 
 	while (break_out--)
 	{
@@ -97,7 +97,7 @@ DSTATUS disk_initialize(void)
 	}
 
 	// Pull CS high
-    disable_cs_sdcard();
+	disable_cs_sdcard();
 
 	if (break_out == 255)
 	{

@@ -67,7 +67,7 @@ typedef union
         uint8_t uhs_2_card_status : 1;
         uint8_t card_capacity_status : 1;
         uint8_t card_power_up_status : 1;
-        };
+    };
 } R3_return;
 
 typedef union

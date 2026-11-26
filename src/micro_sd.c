@@ -8,13 +8,19 @@
 
 #include "micro_sd.h"
 
-// Default commands including buffer space at the end for return data
-
+// Global SD Card Response Structs
 R1_return r1 = {0};
 R2_return r2 = {0};
 R3_return r3 = {0};
 R7_return r7 = {0};
 
+/**
+ * @brief Function to set the memory of an object
+ *
+ * @param None
+ *
+ * @return None
+ */
 void *memset(void *dest, int val, size_t len)
 {
     unsigned char *ptr = (unsigned char *)dest;
@@ -25,6 +31,13 @@ void *memset(void *dest, int val, size_t len)
     return dest;
 }
 
+/**
+ * @brief Function to compare the memory values of one object to another
+ *
+ * @param None
+ *
+ * @return None
+ */
 int memcmp(const void *s1, const void *s2, size_t n)
 {
     const unsigned char *p1 = (const unsigned char *)s1;
@@ -40,6 +53,13 @@ int memcmp(const void *s1, const void *s2, size_t n)
     return 0;
 }
 
+/**
+ * @brief Function to copy the memory contatins of one object to another
+ *
+ * @param None
+ *
+ * @return None
+ */
 void *memcpy(void *dest, const void *src, size_t n)
 {
     unsigned char *d = (unsigned char *)dest;
@@ -51,6 +71,13 @@ void *memcpy(void *dest, const void *src, size_t n)
     return dest;
 }
 
+/**
+ * @brief Function to compare the contents of a char array (string)
+ *
+ * @param None
+ *
+ * @return None
+ */
 char *strchr(const char *s, int c)
 {
     while (*s != (char)c)
@@ -64,6 +91,13 @@ char *strchr(const char *s, int c)
     return (char *)s;
 }
 
+/**
+ * @brief Function to check the values of an R7 response
+ *
+ * @param echo_back Echo correction byte for comparison
+ *
+ * @return 1 on success, 0 on failure
+ */
 static uint8_t check_r7_response(uint8_t echo_back)
 {
     uint8_t success = 1;
@@ -87,6 +121,13 @@ static uint8_t check_r7_response(uint8_t echo_back)
     return success;
 }
 
+/**
+ * @brief Function to check the values of an R2 response
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 static uint8_t check_r2_response(void)
 {
     uint8_t success = 1;
@@ -134,6 +175,13 @@ static uint8_t check_r2_response(void)
     return success;
 }
 
+/**
+ * @brief Function to check the values of on R1 response
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 static uint8_t check_r1_response(void)
 {
     if (r1.raw_r1 > 127)
@@ -199,6 +247,13 @@ static uint8_t check_r1_response(void)
     return success;
 }
 
+/**
+ * @brief Function to send an empty byte to clear the MISO line
+ *
+ * @param None
+ *
+ * @return None
+ */
 static void send_empty(void)
 {
     // Transmit empty byte to clear MISO
@@ -209,6 +264,15 @@ static void send_empty(void)
     return;
 }
 
+/**
+ * @brief Function to send any SD Card command, arguement, and correction code
+ *
+ * @param cmd Command number
+ * @param arg Argument
+ * @param crc Code correction byte
+ *
+ * @return 1 on success, 0 on failure
+ */
 static uint8_t send_cmd(uint8_t cmd, uint32_t arg, uint8_t crc)
 {
     uint8_t tx[6] = {0x40 | cmd, arg >> 24, arg >> 16, arg >> 8, arg, crc};
@@ -231,6 +295,13 @@ static uint8_t send_cmd(uint8_t cmd, uint32_t arg, uint8_t crc)
     return 0;
 }
 
+/**
+ * @brief Function to "wait" until a certain byte is received
+ *
+ * @param value Byte value to wait for
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t wait_till(uint8_t value)
 {
     // Wait until 'value' is received
@@ -252,6 +323,14 @@ uint8_t wait_till(uint8_t value)
     return 0;
 }
 
+/**
+ * @brief Function to read N-many blocks from the SD card
+ *
+ * @param num_blocks Number of blocks to read
+ * @param buffer Empty buffer that will store the read data
+ *
+ * @return 1 on success, 0 on failure
+ */
 static uint8_t read_block(uint32_t num_blocks, uint8_t *buffer)
 {
     uint8_t tx_byte[1] = {0xFF};
@@ -280,6 +359,14 @@ static uint8_t read_block(uint32_t num_blocks, uint8_t *buffer)
     return 1;
 }
 
+/**
+ * @brief Function to write N-many blocks to the SD card
+ *
+ * @param num_blocks Number of blocks to write
+ * @param buffer Buffer with data to write
+ *
+ * @return 1 on success, 0 on failure
+ */
 static uint8_t write_block(uint32_t num_blocks, const uint8_t *buffer)
 {
     while (num_blocks)
@@ -317,19 +404,24 @@ static uint8_t write_block(uint32_t num_blocks, const uint8_t *buffer)
     return 1;
 }
 
+/**
+ * @brief Function to send the CMD0 command
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd0(void)
 {
-    // Send CMD0
-
     // Pull CS low
     enable_cs_sdcard();
 
-    // transfer_spi2(CMD0, rx_cmd0, 10);
     uint8_t pass = send_cmd(0, 0x00, 0x95);
 
     // Pull CS high
     disable_cs_sdcard();
 
+    // Reset MISO
     send_empty();
 
     if (pass)
@@ -340,10 +432,15 @@ uint8_t send_cmd0(void)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD8 command
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd8(void)
 {
-    // Send CMD8
-
     // Pull CS low
     enable_cs_sdcard();
 
@@ -370,6 +467,7 @@ uint8_t send_cmd8(void)
     // Pull CS high
     disable_cs_sdcard();
 
+    // Reset MISO
     send_empty();
 
     if (pass)
@@ -380,10 +478,15 @@ uint8_t send_cmd8(void)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD12 command
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd12(void)
 {
-    // Send CMD12
-
     if (!send_cmd(8, 0x01AA, 0x87))
     {
         return 0;
@@ -397,10 +500,15 @@ uint8_t send_cmd12(void)
     return 1;
 }
 
+/**
+ * @brief Function to send the CMD13 command
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd13(void)
 {
-    // Send CMD13
-
     // Pull CS low
     enable_cs_sdcard();
 
@@ -427,6 +535,7 @@ uint8_t send_cmd13(void)
     // Pull CS high
     disable_cs_sdcard();
 
+    // Reset MISO
     send_empty();
 
     if (pass)
@@ -437,14 +546,19 @@ uint8_t send_cmd13(void)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD17 command
+ *
+ * @param buffer Empty buffer for reading a block of data
+ * @param addr Address to read data from
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd17(uint8_t *buffer, uint32_t addr)
 {
-    // Send CMD17
-
     // Pull CS low
     enable_cs_sdcard();
 
-    // transfer_spi2(CMD17, rx_cmd17, 20);
     uint8_t pass = send_cmd(17, addr, 0x00);
 
     // Start reading process
@@ -458,6 +572,7 @@ uint8_t send_cmd17(uint8_t *buffer, uint32_t addr)
     // Pull CS high
     disable_cs_sdcard();
 
+    // Reset MISO
     send_empty();
 
     if (pass)
@@ -468,10 +583,17 @@ uint8_t send_cmd17(uint8_t *buffer, uint32_t addr)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD18 command
+ *
+ * @param buffer Empty buffer for reading N-many blocks of data
+ * @param addr Address to read data from
+ * @param count Number of blocks to read
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd18(uint8_t *buffer, uint32_t addr, uint32_t count)
 {
-    // Send CMD18
-
     // Pull CS low
     enable_cs_sdcard();
 
@@ -496,6 +618,7 @@ uint8_t send_cmd18(uint8_t *buffer, uint32_t addr, uint32_t count)
     // Pull CS high
     disable_cs_sdcard();
 
+    // Reset MISO
     send_empty();
 
     if (pass)
@@ -506,14 +629,19 @@ uint8_t send_cmd18(uint8_t *buffer, uint32_t addr, uint32_t count)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD24 command
+ *
+ * @param buffer Filled buffer for writing a block of data
+ * @param addr Address to write data to
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd24(const uint8_t *buffer, uint32_t addr)
 {
-    // Send CMD24
-
     // Pull CS low
     enable_cs_sdcard();
 
-    // transfer_spi2(CMD24, rx_cmd24, 20);
     uint8_t pass = send_cmd(24, addr, 0x00);
 
     // Start writing process
@@ -526,6 +654,7 @@ uint8_t send_cmd24(const uint8_t *buffer, uint32_t addr)
     // Pull CS high
     disable_cs_sdcard();
 
+    // Reset MISO
     send_empty();
 
     if (pass)
@@ -536,14 +665,20 @@ uint8_t send_cmd24(const uint8_t *buffer, uint32_t addr)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD25 command
+ *
+ * @param buffer Filled buffer for writing N-many blocks of data
+ * @param addr Address to write data to
+ * @param count Number of blocks to write
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd25(const uint8_t *buffer, uint32_t addr, uint32_t count)
 {
-    // Send CMD25
-
     // Pull CS low
     enable_cs_sdcard();
 
-    // transfer_spi2(CMD25, rx_cmd25, 20);
     uint8_t pass = send_cmd(25, addr, 0x00);
 
     // Start writing process
@@ -563,6 +698,7 @@ uint8_t send_cmd25(const uint8_t *buffer, uint32_t addr, uint32_t count)
     // Pull CS high
     disable_cs_sdcard();
 
+    // Reset MISO
     send_empty();
 
     if (pass)
@@ -573,6 +709,13 @@ uint8_t send_cmd25(const uint8_t *buffer, uint32_t addr, uint32_t count)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD55 command
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd55(void)
 {
     // Send CMD55
@@ -596,6 +739,13 @@ uint8_t send_cmd55(void)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD58 command
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_cmd58(void)
 {
     // Send CMD58
@@ -618,6 +768,7 @@ uint8_t send_cmd58(void)
     // Pull CS high
     disable_cs_sdcard();
 
+    // Reset MISO
     send_empty();
 
     if (pass)
@@ -628,6 +779,13 @@ uint8_t send_cmd58(void)
     return 0;
 }
 
+/**
+ * @brief Function to send the CMD41 command
+ *
+ * @param None
+ *
+ * @return 1 on success, 0 on failure
+ */
 uint8_t send_acmd41(void)
 {
     // Send ACMD41

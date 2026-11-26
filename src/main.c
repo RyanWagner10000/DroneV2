@@ -91,7 +91,8 @@ static void init_peripherals(void)
 static void init_modules(void)
 {
     // Init Micro SD Card reader
-    FRESULT fr = f_mount(&fs, "", 1); // 1 = mount now: runs disk_initialize, reads boot sector
+    // 1 = mount now: runs disk_initialize, reads boot sector
+    FRESULT fr = f_mount(&fs, "", 1);
     if (fr == FR_OK)
     {
         usart_write_string("SD Card Reader Initialized!\n");
@@ -102,17 +103,32 @@ static void init_modules(void)
         {
             usart_write_string("  SD Card File Init Successful!\n");
 
+            // Write test
             UINT bw;
-            uint8_t temp_data_buffer[10] = {'T', 'E', 'S', 'T', 0x00, 0x00, 0x00, 0x00, 0x00, 0x00};
-            FRESULT fr = f_write(&logfile, temp_data_buffer, sizeof temp_data_buffer, &bw);
-            if (fr != FR_OK || bw != sizeof temp_data_buffer)
+            uint8_t test_write_buffer[] = "This is a test write to the SD card.\n";
+            FRESULT fr = f_write(&logfile, test_write_buffer, sizeof test_write_buffer, &bw);
+
+            if (fr != FR_OK || bw != sizeof test_write_buffer)
             {
-                usart_write_string("Failure to write TEST to file\n");
+                usart_write_string("Failure to write test sentence to SD card file\n");
+            }
+            else
+            {
+                usart_write_string("  SD Card File Write Successful!\n");
             }
 
             f_close(&logfile);
-            usart_write_string("  SD Card File Read/Write Successful!\n");
         }
+        else
+        {
+            usart_write_string("  SD Card File Initialization was NOT successful\n");
+        }
+    }
+    else
+    {
+        usart_write_string("!!!!! !!!!! !!!!!  ");
+        usart_write_string("SD Card NOT Setup");
+        usart_write_string("  !!!!! !!!!! !!!!!\n");
     }
 
     // Init IMU module
