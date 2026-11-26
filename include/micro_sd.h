@@ -82,7 +82,7 @@ typedef union
     };
 } R7_return;
 
-uint8_t busy_wait(void);
+uint8_t wait_till(uint8_t value);
 uint8_t send_cmd0(void);
 uint8_t send_cmd8(void);
 uint8_t send_cmd12(void);

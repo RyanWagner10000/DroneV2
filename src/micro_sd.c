@@ -9,29 +9,6 @@
 #include "micro_sd.h"
 
 // Default commands including buffer space at the end for return data
-// #define CMD_LEN (6)
-
-// static uint8_t CMD0_GO_IDLE_STATE[CMD_LEN] = {0x40, 0x00, 0x00, 0x00, 0x00, 0x95};
-// static uint8_t CMD1_SEND_OP_COND[CMD_LEN] = {0x41, 0x00, 0x00, 0x00, 0x00, 0xF9};
-// static uint8_t CMD8_SEND_IF_COND[CMD_LEN] = {0x48, 0x00, 0x00, 0x01, 0xAA, 0x87};
-// static uint8_t CMD9_SEND_CSD[CMD_LEN] = {0x49, 0x00, 0x00, 0x00, 0x00, 0xAF};
-// static uint8_t CMD10_SEND_CID[CMD_LEN] = {0x4A, 0x00, 0x00, 0x00, 0x00, 0x1B};
-// static uint8_t CMD12_STOP_TRANSMISSION[CMD_LEN] = {0x4C, 0x00, 0x00, 0x00, 0x00, 0x61};
-// static uint8_t CMD13_SEND_STATUS[CMD_LEN] = {0x4D, 0x00, 0x00, 0x00, 0x00, 0x0D};
-// static uint8_t CMD16_SET_BLOCKLEN[CMD_LEN] = {0x50, 0x00, 0x00, 0x00, 0x00, 0x39};
-// static uint8_t CMD17_READ_SINGLE_BLOCK[CMD_LEN] = {0x51, 0x00, 0x00, 0x00, 0x00, 0x55};
-// static uint8_t CMD18_READ_MULTIPLE_BLOCK[CMD_LEN] = {0x52, 0x00, 0x00, 0x00, 0x00, 0xE1};
-// static uint8_t CMD24_WRITE_BLOCK[CMD_LEN] = {0x58, 0x00, 0x00, 0x00, 0x00, 0x6F};
-// static uint8_t CMD25_WRITE_MULTIPLE_BLOCK[CMD_LEN] = {0x59, 0x00, 0x00, 0x00, 0x00, 0x03};
-// static uint8_t CMD27_PROGRAM_CSD[CMD_LEN] = {0x5B, 0x00, 0x00, 0x00, 0x00, 0xDB};
-// static uint8_t CMD32_ERASE_WR_BLK_START_ADDR[CMD_LEN] = {0x60, 0x00, 0x00, 0x00, 0x00, 0xDF};
-// static uint8_t CMD33_ERASE_WR_BLK_END_ADDR[CMD_LEN] = {0x61, 0x00, 0x00, 0x00, 0x00, 0xB3};
-// static uint8_t CMD38_ERASE[CMD_LEN] = {0x66, 0x00, 0x00, 0x00, 0x00, 0xA5};
-// static uint8_t CMD55_APP_CMD[CMD_LEN] = {0x77, 0x00, 0x00, 0x00, 0x00, 0x65};
-// static uint8_t CMD56_GEN_CMD[CMD_LEN] = {0x78, 0x00, 0x00, 0x00, 0x00, 0x25};
-// static uint8_t CMD58_READ_OCR[CMD_LEN] = {0x7A, 0x00, 0x00, 0x00, 0x00, 0xFD};
-// static uint8_t CMD59_CRC_ON_OFF[CMD_LEN] = {0x7B, 0x00, 0x00, 0x00, 0x00, 0x91};
-// static uint8_t ACMD41_SD_SEND_OP_COND[CMD_LEN] = {0x69, 0x40, 0x00, 0x00, 0x00, 0x77};
 
 R1_return r1 = {0};
 R2_return r2 = {0};
@@ -85,25 +62,6 @@ char *strchr(const char *s, int c)
         s++;
     }
     return (char *)s;
-}
-
-uint8_t busy_wait()
-{
-    // Wait until 0xFF arrives
-    uint8_t tx_byte[1] = {0xFF};
-    uint8_t rx_byte[1] = {0x00};
-    for (uint8_t i = 0; i < 100; i++)
-    {
-        transfer_spi2(tx_byte, rx_byte, 1);
-        if (rx_byte[0] == 0xFF)
-        {
-            return 1;
-        }
-
-        delay_millisecond(1);
-    }
-
-    return 0;
 }
 
 static uint8_t check_r7_response(uint8_t echo_back)
@@ -235,36 +193,47 @@ static uint8_t check_r1_response(void)
         usart_write_string("  Too many flags [");
         usart_write_number((int32_t)flags);
         usart_write_string("]. Probably a false response value.\n");
-        return 0;
+        success = 0;
     }
 
     return success;
 }
 
-// static uint8_t wait_till(uint8_t value)
-// {
-//     // Wait until 'value' is received
-//     uint8_t tx_byte[1] = {0xFF};
-//     uint8_t rx_byte[1] = {0x00};
-
-//     for (uint8_t i = 0; i < 100; i++)
-//     {
-//         transfer_spi2(tx_byte, rx_byte, 1);
-
-//         if (rx_byte[0] == value)
-//         {
-//             return 1;
-//         }
-
-//         delay_millisecond(1);
-//     }
-
-//     return 0;
-// }
-
-static uint8_t wait_start_block(void)
+static void send_empty(void)
 {
-    // Wait until Start Block Token arrives
+    // Transmit empty byte to clear MISO
+    uint8_t tx_byte[1] = {0xFF};
+    uint8_t rx_byte[1] = {0x00};
+    transfer_spi2(tx_byte, rx_byte, 1);
+
+    return;
+}
+
+static uint8_t send_cmd(uint8_t cmd, uint32_t arg, uint8_t crc)
+{
+    uint8_t tx[6] = {0x40 | cmd, arg >> 24, arg >> 16, arg >> 8, arg, crc};
+    uint8_t rx[6] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    uint8_t _tx[1] = {0xFF}, _rx[1] = {0xFF};
+
+    transfer_spi2(tx, rx, 6);
+
+    for (uint8_t i = 0; i < 10; i++)
+    {
+        transfer_spi2(_tx, _rx, 1);
+        r1.raw_r1 = _rx[0];
+        if (check_r1_response())
+        {
+            return 1;
+        }
+        _rx[0] = 0xFF;
+    }
+
+    return 0;
+}
+
+uint8_t wait_till(uint8_t value)
+{
+    // Wait until 'value' is received
     uint8_t tx_byte[1] = {0xFF};
     uint8_t rx_byte[1] = {0x00};
 
@@ -272,7 +241,7 @@ static uint8_t wait_start_block(void)
     {
         transfer_spi2(tx_byte, rx_byte, 1);
 
-        if (rx_byte[0] == 0xFE)
+        if (rx_byte[0] == value)
         {
             return 1;
         }
@@ -295,7 +264,7 @@ static uint8_t read_block(uint32_t num_blocks, uint8_t *buffer)
     for (uint32_t i = 0; i < num_blocks; i++)
     {
         // Wait until Start Block Token arrives
-        if (!wait_start_block())
+        if (!wait_till(0xFE))
         {
             disable_cs_sdcard();
             return 0;
@@ -339,7 +308,7 @@ static uint8_t write_block(uint32_t num_blocks, const uint8_t *buffer)
         num_blocks--;
     }
 
-    if (!busy_wait())
+    if (!wait_till(0xFF))
     {
         usart_write_string("Did not stop being busy for writing\n");
         return 0;
@@ -351,25 +320,21 @@ static uint8_t write_block(uint32_t num_blocks, const uint8_t *buffer)
 uint8_t send_cmd0(void)
 {
     // Send CMD0
-    uint8_t rx_cmd0[10] = {0x00};
-    uint8_t CMD0[10] = {0x40, 0x00, 0x00, 0x00, 0x00, 0x95, 0xFF, 0xFF, 0xFF, 0xFF};
 
     // Pull CS low
     enable_cs_sdcard();
 
-    transfer_spi2(CMD0, rx_cmd0, 10);
+    // transfer_spi2(CMD0, rx_cmd0, 10);
+    uint8_t pass = send_cmd(0, 0x00, 0x95);
 
     // Pull CS high
     disable_cs_sdcard();
 
-    for (uint8_t i = 6; i < 10; i++)
+    send_empty();
+
+    if (pass)
     {
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd0[i];
-        if (check_r1_response())
-        {
-            return 1;
-        }
+        return 1;
     }
 
     return 0;
@@ -378,35 +343,38 @@ uint8_t send_cmd0(void)
 uint8_t send_cmd8(void)
 {
     // Send CMD8
-    uint8_t rx_cmd8[20] = {0x00};
-    uint8_t CMD8[20] = {0x48, 0x00, 0x00, 0x01, 0xAA, 0x87, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
     // Pull CS low
     enable_cs_sdcard();
 
-    transfer_spi2(CMD8, rx_cmd8, 20);
+    uint8_t pass = send_cmd(8, 0x01AA, 0x87);
+
+    // Get the rest of he R7 response
+    if (pass)
+    {
+        uint8_t tx[4] = {0xFF, 0xFF, 0xFF, 0xFF};
+        uint8_t rx[4] = {0xFF, 0xFF, 0xFF, 0xFF};
+        transfer_spi2(tx, rx, 4);
+
+        r7.raw_r7 = ((uint32_t)(rx[0]) << 24) | ((uint32_t)(rx[1]) << 16) | ((uint32_t)(rx[2]) << 8) | (uint32_t)(rx[3]);
+        if (check_r7_response(0xAA))
+        {
+            pass = 1;
+        }
+        else
+        {
+            pass = 0;
+        }
+    }
 
     // Pull CS high
     disable_cs_sdcard();
 
-    // Response is R1 & R7 format
-    for (uint8_t i = 6; i < 20; i++)
+    send_empty();
+
+    if (pass)
     {
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd8[i];
-
-        // Check R1 response for errors
-        if (check_r1_response() && ((i + 4) < 20))
-        {
-            r7.raw_r7 = ((uint32_t)(rx_cmd8[i + 1]) << 24) | ((uint32_t)(rx_cmd8[i + 2]) << 16) | ((uint32_t)(rx_cmd8[i + 3]) << 8) | (uint32_t)(rx_cmd8[i + 4]);
-            // Check R7 response for voltage acceptance and echo
-            if (check_r7_response(0xAA))
-            {
-                return 1;
-            }
-
-            break;
-        }
+        return 1;
     }
 
     return 0;
@@ -415,35 +383,15 @@ uint8_t send_cmd8(void)
 uint8_t send_cmd12(void)
 {
     // Send CMD12
-    uint8_t rx_cmd12[10] = {0x00};
-    uint8_t CMD12[10] = {0x4C, 0x00, 0x00, 0x00, 0x00, 0x95, 0xFF, 0xFF, 0xFF, 0xFF};
 
-    transfer_spi2(CMD12, rx_cmd12, 10);
-
-    uint8_t kick_first = 0;
-
-    for (uint8_t i = 6; i < 10; i++)
+    if (!send_cmd(8, 0x01AA, 0x87))
     {
-        if (!kick_first)
-        {
-            kick_first++;
-            continue;
-        }
-
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd12[i];
-
-        // Check R1 response for errors
-        if (!check_r1_response())
-        {
-            return 0;
-        }
+        return 0;
     }
 
-    // Wait for MISO to go high
-    while (~(GPIOB->IDR & (1U << 14)))
+    if (!wait_till(0xFF))
     {
-        ;
+        return 0;
     }
 
     return 1;
@@ -452,91 +400,52 @@ uint8_t send_cmd12(void)
 uint8_t send_cmd13(void)
 {
     // Send CMD13
-    uint8_t rx_cmd13[15] = {0x00};
-    uint8_t CMD13[15] = {0x4D, 0x00, 0x00, 0x00, 0x00, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    uint8_t index = 0;
 
+    // Pull CS low
     enable_cs_sdcard();
 
-    transfer_spi2(CMD13, rx_cmd13, 15);
+    uint8_t pass = send_cmd(13, 0x00, 0x00);
 
-    for (index = 6; index < 14; index++)
+    // Get the rest of the R2 response
+    if (pass)
     {
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd13[index];
+        uint8_t tx[1] = {0xFF};
+        uint8_t rx[1] = {0xFF};
+        transfer_spi2(tx, rx, 1);
 
-        // Check R1 response for errors
-        if (check_r1_response())
+        r2.raw_r2 = rx[0];
+        if (check_r2_response())
         {
-            r2.raw_r2 = rx_cmd13[index + 1];
-
-            if (check_r2_response())
-            {
-                break;
-            }
+            pass = 1;
+        }
+        else
+        {
+            pass = 0;
         }
     }
 
-    if (index == 15)
-    {
-        usart_write_string(" R1 response was not found for CMD13");
-        disable_cs_sdcard();
-        return 0;
-    }
-
-    // If response was anything but good
-    if (r1.raw_r1 != 0)
-    {
-        usart_write_string("R1 response was NOT 0\n");
-        disable_cs_sdcard();
-        return 0;
-    }
-    else if (r2.raw_r2 != 0)
-    {
-        usart_write_string("R2 response was NOT 0\n");
-        disable_cs_sdcard();
-        return 0;
-    }
-
+    // Pull CS high
     disable_cs_sdcard();
-    return 1;
+
+    send_empty();
+
+    if (pass)
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 uint8_t send_cmd17(uint8_t *buffer, uint32_t addr)
 {
     // Send CMD17
-    uint8_t rx_cmd17[20] = {0x00};
-    uint8_t CMD17[20] = {0x51, addr >> 24, addr >> 16, addr >> 8, addr, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    uint8_t index = 0;
 
+    // Pull CS low
     enable_cs_sdcard();
 
-    transfer_spi2(CMD17, rx_cmd17, 20);
-
-    for (index = 6; index < 20; index++)
-    {
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd17[index];
-
-        // Check R1 response for errors
-        if (check_r1_response())
-        {
-            break;
-        }
-    }
-
-    if (index == 20)
-    {
-        usart_write_string("Did not find valid R1 response for CMD 17\n");
-    }
-
-    // If response was anything but good
-    if (r1.raw_r1 != 0)
-    {
-        usart_write_string("R1 response was NOT 0\n");
-        disable_cs_sdcard();
-        return 0;
-    }
+    // transfer_spi2(CMD17, rx_cmd17, 20);
+    uint8_t pass = send_cmd(17, addr, 0x00);
 
     // Start reading process
     if (!read_block(1, buffer))
@@ -546,50 +455,27 @@ uint8_t send_cmd17(uint8_t *buffer, uint32_t addr)
         return 0;
     }
 
+    // Pull CS high
     disable_cs_sdcard();
 
-    uint8_t tx_byte[1] = {0xFF};
-    uint8_t rx_byte[1] = {0x00};
-    transfer_spi2(tx_byte, rx_byte, 1);
+    send_empty();
 
-    return 1;
+    if (pass)
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 uint8_t send_cmd18(uint8_t *buffer, uint32_t addr, uint32_t count)
 {
-    // Send CMD17
-    uint8_t rx_cmd18[20] = {0x00};
-    uint8_t CMD18[20] = {0x52, addr >> 24, addr >> 16, addr >> 8, addr, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    uint8_t index = 0;
+    // Send CMD18
 
-    transfer_spi2(CMD18, rx_cmd18, 20);
+    // Pull CS low
+    enable_cs_sdcard();
 
-    for (index = 6; index < 20; index++)
-    {
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd18[index];
-
-        // Check R1 response for errors
-        if (check_r1_response())
-        {
-            break;
-        }
-    }
-
-    if (index == 20)
-    {
-        usart_write_string("Did not find valid R1 response for CMD 18\n");
-        disable_cs_sdcard();
-        return 0;
-    }
-
-    // If response was anything but good
-    if (r1.raw_r1 != 0)
-    {
-        usart_write_string("R1 response was NOT 0\n");
-        disable_cs_sdcard();
-        return 0;
-    }
+    uint8_t pass = send_cmd(18, addr, 0x00);
 
     // Start reading process
     if (!read_block(count, buffer))
@@ -607,146 +493,93 @@ uint8_t send_cmd18(uint8_t *buffer, uint32_t addr, uint32_t count)
         return 0;
     }
 
+    // Pull CS high
     disable_cs_sdcard();
 
-    uint8_t tx_byte[1] = {0xFF};
-    uint8_t rx_byte[1] = {0x00};
-    transfer_spi2(tx_byte, rx_byte, 1);
+    send_empty();
 
-    return 1;
+    if (pass)
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 uint8_t send_cmd24(const uint8_t *buffer, uint32_t addr)
 {
     // Send CMD24
-    uint8_t rx_cmd24[20] = {0x00};
-    uint8_t CMD24[20] = {0x58, addr >> 24, addr >> 16, addr >> 8, addr, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    uint8_t index = 0;
 
+    // Pull CS low
     enable_cs_sdcard();
 
-    transfer_spi2(CMD24, rx_cmd24, 20);
-
-    for (index = 6; index < 20; index++)
-    {
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd24[index];
-
-        // Check R1 response for errors
-        if (check_r1_response())
-        {
-            break;
-        }
-    }
-
-    if (index == 20)
-    {
-        usart_write_string("Did not find valid R1 response for CMD 24\n");
-        disable_cs_sdcard();
-        return 0;
-    }
-
-    // If response was anything but good
-    if (r1.raw_r1 != 0)
-    {
-        usart_write_string("R1 response was NOT 0\n");
-        disable_cs_sdcard();
-        return 0;
-    }
+    // transfer_spi2(CMD24, rx_cmd24, 20);
+    uint8_t pass = send_cmd(24, addr, 0x00);
 
     // Start writing process
-    if (!write_block(1, buffer))
+    if (!pass || !write_block(1, buffer))
     {
         usart_write_string("\n-- Micro Sd Card Writing Block Failure --\n");
-        disable_cs_sdcard();
-        return 0;
+        pass = 0;
     }
 
+    // Pull CS high
     disable_cs_sdcard();
 
-    uint8_t tx_byte[1] = {0xFF};
-    uint8_t rx_byte[1] = {0x00};
-    transfer_spi2(tx_byte, rx_byte, 1);
+    send_empty();
 
-    return 1;
+    if (pass)
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 uint8_t send_cmd25(const uint8_t *buffer, uint32_t addr, uint32_t count)
 {
     // Send CMD25
-    uint8_t rx_cmd25[20] = {0x00};
-    uint8_t CMD25[20] = {0x59, addr >> 24, addr >> 16, addr >> 8, addr, 0x00, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
-    uint8_t index = 0;
 
+    // Pull CS low
     enable_cs_sdcard();
 
-    transfer_spi2(CMD25, rx_cmd25, 20);
-
-    for (uint8_t index = 6; index < 20; index++)
-    {
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd25[index];
-
-        // Check R1 response for errors
-        if (check_r1_response())
-        {
-            break;
-        }
-    }
-
-    if (index == 20)
-    {
-        usart_write_string("Did not find valid R1 response for CMD 25\n");
-        disable_cs_sdcard();
-        return 0;
-    }
-
-    // If response was anything but good
-    if (r1.raw_r1 != 0)
-    {
-        usart_write_string("R1 response was NOT 0\n");
-        disable_cs_sdcard();
-        return 0;
-    }
+    // transfer_spi2(CMD25, rx_cmd25, 20);
+    uint8_t pass = send_cmd(25, addr, 0x00);
 
     // Start writing process
-    if (!write_block(count, buffer))
+    if (!pass || !write_block(count, buffer))
     {
         usart_write_string("\n-- Micro Sd Card Writing Block Failure --\n");
-        disable_cs_sdcard();
-        return 0;
+        pass = 0;
     }
 
     // Send Stop Transmission
-    if (!send_cmd12())
+    if (!pass || !send_cmd12())
     {
         usart_write_string("\n-- Micro Sd Card [CMD12] Failure --\n");
-        disable_cs_sdcard();
-        return 0;
+        pass = 0;
     }
 
+    // Pull CS high
     disable_cs_sdcard();
 
-    uint8_t tx_byte[1] = {0xFF};
-    uint8_t rx_byte[1] = {0x00};
-    transfer_spi2(tx_byte, rx_byte, 1);
+    send_empty();
 
-    return 1;
+    if (pass)
+    {
+        return 1;
+    }
+
+    return 0;
 }
 
 uint8_t send_cmd55(void)
 {
-    // Send CMD55 6 bytes + 1 byte for return
+    // Send CMD55
     uint8_t rx_cmd55[20] = {0x00};
     uint8_t CMD55[20] = {0x77, 0x00, 0x00, 0x00, 0x00, 0x65, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
 
-    // Pull CS low
-    // enable_cs_sdcard();
-
     transfer_spi2(CMD55, rx_cmd55, 20);
-
-    // Pull CS high
-    // disable_cs_sdcard();
 
     for (uint8_t i = 6; i < 20; i++)
     {
@@ -765,31 +598,31 @@ uint8_t send_cmd55(void)
 
 uint8_t send_cmd58(void)
 {
-    // Send CMD58 6 bytes with 5 extra for return
-    uint8_t rx_cmd58[20] = {0x00};
-    uint8_t CMD58[20] = {0x7A, 0x00, 0x00, 0x00, 0x00, 0xFD, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
+    // Send CMD58
 
     // Pull CS low
     enable_cs_sdcard();
 
-    transfer_spi2(CMD58, rx_cmd58, 20);
+    uint8_t pass = send_cmd(58, 0x00, 0xFD);
+
+    // Get the rest of the R3 response
+    if (pass)
+    {
+        uint8_t tx[4] = {0xFF, 0xFF, 0xFF, 0xFF};
+        uint8_t rx[4] = {0xFF, 0xFF, 0xFF, 0xFF};
+        transfer_spi2(tx, rx, 4);
+
+        r3.raw_r3 = ((uint32_t)(rx[0]) << 24) | ((uint32_t)(rx[1]) << 16) | ((uint32_t)(rx[2]) << 8) | (uint32_t)(rx[3]);
+    }
 
     // Pull CS high
     disable_cs_sdcard();
 
-    // Response is R1 & R3 format
-    for (uint8_t i = 6; i < 20; i++)
+    send_empty();
+
+    if (pass)
     {
-        // Response is R1 format
-        r1.raw_r1 = rx_cmd58[i];
-
-        // Check R1 response for errors
-        if (check_r1_response() && ((i + 4) < 20))
-        {
-            r3.raw_r3 = (rx_cmd58[i + 1] << 24) | (rx_cmd58[i + 2] << 16) | (rx_cmd58[i + 3] << 8) | rx_cmd58[i + 4];
-
-            return 1;
-        }
+        return 1;
     }
 
     return 0;
@@ -797,17 +630,11 @@ uint8_t send_cmd58(void)
 
 uint8_t send_acmd41(void)
 {
-    // Send ACMD41 6 bytes with 1 extra for return
+    // Send ACMD41
     uint8_t rx_acmd41[10] = {0x00};
     uint8_t ACMD41[10] = {0x69, 0x40, 0x00, 0x00, 0x00, 0x77, 0xFF, 0xFF, 0xFF, 0xFF};
 
-    // Pull CS low
-    // enable_cs_sdcard();
-
     transfer_spi2(ACMD41, rx_acmd41, 10);
-
-    // Pull CS high
-    // disable_cs_sdcard();
 
     for (uint8_t i = 6; i < 10; i++)
     {

@@ -204,7 +204,7 @@ DSTATUS disk_write(
 DSTATUS disk_ioctl()
 {
 	// Wait until card finishes internal write process (MISO goes high)
-	if (busy_wait())
+	if (wait_till(0xFF))
 	{
 		return RES_OK;
 	}

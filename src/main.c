@@ -111,33 +111,9 @@ static void init_modules(void)
             }
 
             f_close(&logfile);
+            usart_write_string("  SD Card File Read/Write Successful!\n");
         }
     }
-
-    // DSTATUS fr = disk_initialize();
-    // if (fr == RES_OK)
-    // {
-    //     usart_write_string("SD Card Reader Initialized!\n");
-
-    //     // Test read
-    //     uint8_t read_buff[512] = {0x00};
-    //     fr = disk_read(read_buff, 0, 1);
-    //     if (fr == RES_OK && read_buff[510] == 0x55 && read_buff[511] == 0xAA)
-    //     {
-    //         usart_write_string("  SD Card Read Successful!\n");
-    //     }
-    //     else {
-    //         usart_write_string("!!!!! !!!!! !!!!!  ");
-    //         usart_write_string("Read Disk Failure");
-    //         usart_write_string("  !!!!! !!!!! !!!!!\n");
-    //     }
-    // }
-    // else
-    // {
-    //     usart_write_string("!!!!! !!!!! !!!!!  ");
-    //     usart_write_string("SD Card Reader NOT Setup");
-    //     usart_write_string("  !!!!! !!!!! !!!!!\n");
-    // }
 
     // Init IMU module
     init_lsm9ds1();
